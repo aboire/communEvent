@@ -39,7 +39,7 @@ Template.newsDetail.events({
     var self = this;
     if(Meteor.isCordova){
       if(this.moduleId){
-        const url = `${Meteor.settings.public.urlimage}/upload/${moduleId}/${folder}/${name}`;
+        const url = `${Meteor.settings.public.urlimage}/upload/${this.moduleId}/${this.folder}/${this.name}`;
         PhotoViewer.show(url);
       }else{
         PhotoViewer.show(this.url());
