@@ -26,11 +26,11 @@ Meteor.startup(function () {
 		var initNotifystart = NotificationHistory.find({'addedAt': {$gt: new Date()}}).observe({
 			added: function(notification) {
 				if(!initNotifystart) return ;
-				console.log('systemNotifications');
+				console.log(Desktop.getAssetUrl('\___desktop\icon.png'));
 				Desktop.send('systemNotifications', 'notify', {
 				title: notification.title,
 				text: notification.text,
-				icon: '/icon.png',
+				icon: '\___desktop\icon.png',
 				data: notification,
 		});
 			Desktop.send('systemNotifications', 'setBadge', NotificationHistory.find({}).count());
