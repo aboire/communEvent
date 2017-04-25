@@ -1,5 +1,3 @@
-import './pixel.html'
-
 import { Meteor } from 'meteor/meteor';
 import { Template } from 'meteor/templating';
 import { Router } from 'meteor/iron:router';
@@ -8,6 +6,8 @@ import { NotificationHistory } from '../api/notification_history.js';
 
 import './settings/settings.js';
 import './notifications/notifications.js';
+
+import './pixel.html'
 
 Template.layout.onCreated(function(){
   Meteor.subscribe('notificationsUser');
@@ -63,6 +63,7 @@ Template.layout.events({
                 Meteor.call('connectEntity',qr._id,'organizations', function (error, result) {
                   if (!error) {
                     window.alert("Connexion à l'entité réussie");
+                    Router.go("newsList",{scope:'organizations',_id:qr._id});
                   }else{
                     window.alert(error.reason);
                     console.log('error',error);
@@ -72,6 +73,7 @@ Template.layout.events({
                 Meteor.call('connectEntity',qr._id,'projects', function (error, result) {
                   if (!error) {
                     window.alert("Connexion à l'entité réussie");
+                    Router.go("newsList",{scope:'projects',_id:qr._id});
                   }else{
                     window.alert(error.reason);
                     console.log('error',error);

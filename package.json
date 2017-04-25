@@ -1,7 +1,7 @@
 {
-  "name": "communevent",
-  "version": "0.0.31",
-  "description": "communevent",
+  "name": "communecter",
+  "version": "0.0.1",
+  "description": "communecter",
   "private": true,
   "scripts": {
     "start": "meteor run",

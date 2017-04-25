@@ -1,7 +1,7 @@
 {
-    "name": "CommunEvent",
-    "version": "0.0.31",
-    "projectName": "communevent",
+    "name": "communecter",
+    "version": "0.0.1",
+    "projectName": "communecter",
     "devTools": true,
     "devtron": true,
     "desktopHCP": true,
@@ -37,13 +37,13 @@
     },
     "dependencies": {},
     "packageJsonFields": {
-        "description": "CommunEvent",
+        "description": "communecter",
         "author": "Thomas Craipeau",
         "private": true
     },
     "builderOptions": {
         "win": {
-            "title": "CommunEvent",
+            "title": "communecter",
             "authors": "Thomas Craipeau",
             "target": ["squirrel","nsis"]
         },
@@ -52,8 +52,8 @@
             "loadingGif": ".desktop/assets/loading.gif"
         },
         "icon": ".desktop/assets/icon.ico",
-        "appId": "communEvent.app",
-        "productName": "CommunEvent",
+        "appId": "communecter.app",
+        "productName": "communecter",
         "compression": "maximum",
         "mac": {
             "icon": ".desktop/assets/icon.icns"
@@ -79,12 +79,12 @@
         "version-string": {
             "CompanyName": "communecter",
             "LegalCopyright": "communecter.org",
-            "FileDescription": "CommunEvent",
-            "OriginalFilename": "CommunEvent.exe",
+            "FileDescription": "communecter",
+            "OriginalFilename": "communecter.exe",
             "FileVersion": "@version",
             "ProductVersion": "@version",
-            "ProductName": "CommunEvent",
-            "InternalName": "CommunEvent.exe"
+            "ProductName": "communecter",
+            "InternalName": "communecter.exe"
         }
     }
 }

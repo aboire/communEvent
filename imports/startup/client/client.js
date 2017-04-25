@@ -18,8 +18,11 @@ import { Documents } from '../../api/documents.js';
 
 //schemas
 import { SchemasEventsRest } from '../../api/events.js';
+import { SchemasOrganizationsRest } from '../../api/organizations.js';
+import { SchemasProjectsRest } from '../../api/projects.js';
 import { SchemasFollowRest,SchemasInviteAttendeesEventRest } from '../../api/citoyens.js';
 import { SchemasNewsRest } from '../../api/news.js';
+import { SchemasCommentsRest,SchemasCommentsEditRest } from '../../api/comments.js';
 
 Meteor.startup(function () {
 
@@ -67,9 +70,13 @@ TAPi18n.setLanguage(language)
 
 
 SchemasEventsRest.i18n("schemas.eventsrest");
+SchemasOrganizationsRest.i18n("schemas.organizationsrest");
+SchemasProjectsRest.i18n("schemas.projectsrest");
 SchemasFollowRest.i18n("schemas.followrest");
 SchemasInviteAttendeesEventRest.i18n("schemas.followrest");
 SchemasNewsRest.i18n("schemas.news");
+SchemasCommentsRest.i18n("schemas.comments");
+SchemasCommentsEditRest.i18n("schemas.comments");
 
 Template.registerHelper('distance',function (coordinates) {
   let geo = Location.getReactivePosition();
@@ -121,9 +128,9 @@ Template.registerHelper('imageDoc',
 function(id) {
   if(id){
     //console.log(id);
-    return Documents.findOne({	id : id,doctype :'image'});
+    return Documents.findOne({	id : id,doctype :'image'},{sort: {"created": -1}});
   }else{
-    return this && this._id && this._id._str && Documents.findOne({	id : this._id._str,doctype :'image'});
+    return this && this._id && this._id._str && Documents.findOne({	id : this._id._str,doctype :'image'},{sort: {"created": -1}});
   }
 }
 );
@@ -142,12 +149,14 @@ Template.registerHelper("urlImageDesktop", function () {
   return Meteor.isDesktop ? Meteor.settings.public.remoteUrl : '';
 });
 
-
 Template.registerHelper("SchemasFollowRest", SchemasFollowRest);
 Template.registerHelper("SchemasInviteAttendeesEventRest", SchemasInviteAttendeesEventRest);
 Template.registerHelper("SchemasNewsRest", SchemasNewsRest);
 Template.registerHelper("SchemasEventsRest", SchemasEventsRest);
-
+Template.registerHelper("SchemasOrganizationsRest", SchemasOrganizationsRest);
+Template.registerHelper("SchemasProjectsRest", SchemasProjectsRest);
+Template.registerHelper("SchemasCommentsRest", SchemasCommentsRest);
+Template.registerHelper("SchemasCommentsEditRest", SchemasCommentsEditRest);
 
 let success = function (state) {
   if(state === 'Enabled') {

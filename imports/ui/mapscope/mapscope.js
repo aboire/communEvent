@@ -1,5 +1,3 @@
-import './mapevent.html';
-
 import { Meteor } from 'meteor/meteor';
 import { Template } from 'meteor/templating';
 import { Session } from 'meteor/session';
@@ -12,16 +10,38 @@ import { Location } from 'meteor/djabatav:geolocation-plus';
 import { _ } from 'meteor/underscore';
 
 import { Events } from '../../api/events.js';
+import { Organizations } from '../../api/organizations.js';
+import { Projects } from '../../api/projects.js';
+import { Citoyens } from '../../api/citoyens.js';
+
+import { nameToCollection } from '../../api/helpers.js';
 
 //submanager
-import { listEventsSubs } from '../../api/client/subsmanager.js';
+import { listEventsSubs,listOrganizationsSubs,listProjectsSubs,listCitoyensSubs } from '../../api/client/subsmanager.js';
 
-Template.mapevent.onCreated(function () {
+import './mapscope.html';
+
+window.Events = Events;
+window.Organizations = Organizations;
+window.Projects = Projects;
+window.Citoyens = Citoyens;
+
+const subs = {};
+subs.events = listEventsSubs;
+subs.organizations = listOrganizationsSubs;
+subs.projects = listProjectsSubs;
+subs.citoyens = listCitoyensSubs;
+
+Template.mapCanvas.onCreated(function () {
   var self = this;
   self.ready = new ReactiveVar();
 
   //mettre sur layer ?
   Meteor.subscribe('citoyen');
+
+  self.autorun(function(c) {
+    Session.set("currentScopeId", Router.current().params._id);
+  });
 
   //sub listEvents
   self.autorun(function(c) {
@@ -30,13 +50,13 @@ Template.mapevent.onCreated(function () {
     if(radius && geo && geo.latitude){
       console.log('sub list events geo radius');
       let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      let handle = listEventsSubs.subscribe('citoyenEvents',latlng,radius);
+      let handle = subs[Router.current().params.scope].subscribe('geo.scope',Router.current().params.scope,latlng,radius);
       self.ready.set(handle.ready());
     }else{
       console.log('sub list events city');
       let city = Session.get('city');
       if(city && city.geoShape && city.geoShape.coordinates){
-        let handle = listEventsSubs.subscribe('citoyenEvents',city.geoShape);
+        let handle = subs[Router.current().params.scope].subscribe('geo.scope',Router.current().params.scope,city.geoShape);
         self.ready.set(handle.ready());
       }
     }
@@ -45,10 +65,10 @@ Template.mapevent.onCreated(function () {
 
 });
 
-Template.mapevent.onRendered(function () {
+Template.mapCanvas.onRendered(function () {
   var self = this;
   $(window).resize(function () {
-    var h = $(window).height(), offsetTop = 90;
+    var h = $(window).height(), offsetTop = 40;
     $('#map_canvas').css('height', (h - offsetTop));
   }).resize();
 
@@ -65,7 +85,8 @@ Template.mapevent.onRendered(function () {
     self.liveQuery.stop();
   }
   let inputDate = new Date();
-  self.liveQuery = Events.find({created:{$gte : inputDate}}).observe({
+  const collection = nameToCollection(Router.current().params.scope);
+  self.liveQuery = collection.find({created:{$gte : inputDate}}).observe({
     added: function(event) {
       var containerNode = document.createElement('div');
       Blaze.renderWithData(Template.mapeventpopup, event, containerNode);
@@ -117,10 +138,10 @@ Template.mapevent.onRendered(function () {
 
 });
 
-Template.mapevent.onDestroyed(function () {
+Template.mapCanvas.onDestroyed(function () {
   var self = this;
   console.log('destroyed');
-  Session.set('currentEvent',false);
+  Session.set('currentScopeId',false);
   map.remove();
   if (self.liveQuery) {
     self.liveQuery.stop();
@@ -179,10 +200,10 @@ var directionsRoutesControl = L.mapbox.directions.routesControl('routes', direct
 var directionsInstructionsControl = L.mapbox.directions.instructionsControl('instructions', directions)
 .addTo(map);*/
 
-
-Events.find({}).map(function(event){
+const collection = nameToCollection(Router.current().params.scope);
+collection.find({}).map(function(event){
   let containerNode = document.createElement('div');
-  Blaze.renderWithData(Template.mapeventpopup, event, containerNode);
+  Blaze.renderWithData(Template.mapscopepopup, event, containerNode);
   let marker = new L.Marker([event.geo.latitude, event.geo.longitude], {
     _id: event._id._str,
     title: event.name,
@@ -201,8 +222,8 @@ Events.find({}).map(function(event){
 });
 map.addLayer(clusters);
 
-/*if(Session.get('currentEvent')){
-let event = Events.findOne({'_id._str':Session.get('currentEvent')});
+/*if(Session.get('currentScopeId')){
+let event = Events.findOne({'_id._str':Session.get('currentScopeId')});
 if(event && event.geo && event.geo.latitude){
 directions.destination = {
 type: 'Feature',
@@ -241,7 +262,7 @@ const addMarker = (marker) => {
   //map.addLayer(marker);
   clusters.addLayer(marker);
   markers[marker.options._id] = marker;
-  if (Session.get('currentEvent') === marker.options._id) {
+  if (Session.get('currentScopeId') === marker.options._id) {
     console.log('marker open')
     marker.addTo(map).openPopup();
     map.panTo([marker.options.latitude, marker.options.longitude]);

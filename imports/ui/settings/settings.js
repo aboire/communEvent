@@ -5,7 +5,7 @@ import { Session } from 'meteor/session';
 import { Push } from 'meteor/raix:push';
 
 //submanager
-import { listEventsSubs } from '../../api/client/subsmanager.js';
+import { listEventsSubs,listOrganizationsSubs,listProjectsSubs,listCitoyensSubs,dashboardSubs } from '../../api/client/subsmanager.js';
 
 Template.settings.events({
   "change #radius": function(e, t) {
@@ -13,6 +13,10 @@ Template.settings.events({
     Session.set('radius',  value);
     //clear cache
     listEventsSubs.clear();
+    listOrganizationsSubs.clear();
+    listProjectsSubs.clear();
+    listCitoyensSubs.clear();
+    dashboardSubs.clear();
     return;
   },
   'click #clear': function(event) {
@@ -24,6 +28,10 @@ Template.settings.events({
       Session.set('geolocate', true);
       //clear cache
       listEventsSubs.clear();
+      listOrganizationsSubs.clear();
+      listProjectsSubs.clear();
+      listCitoyensSubs.clear();
+      dashboardSubs.clear();
     }else{
       Session.set('geolocate',  false);
     }

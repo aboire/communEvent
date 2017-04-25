@@ -22,8 +22,13 @@ import { Events } from '../../../api/events.js';
 import { listSousEventsSubs } from '../../../api/client/subsmanager.js';
 
 Template.listeventSous.onCreated(function () {
-  var self = this;
+  const self = this;
   self.ready = new ReactiveVar();
+
+
+  self.autorun(function(c) {
+      Session.set('scopeId', Router.current().params._id);
+  });
 
   //sub listEvents
   self.autorun(function(c) {

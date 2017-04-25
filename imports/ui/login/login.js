@@ -11,7 +11,7 @@ import { Location } from 'meteor/djabatav:geolocation-plus';
 //helpers
 import { IsValidEmail } from 'meteor/froatsnook:valid-email';
 
-let  pageSession = new ReactiveDict('pageSession');
+import { pageSession } from '../../api/client/reactive.js';
 
 Template.login.onCreated(function () {
   pageSession.set( 'error', false );

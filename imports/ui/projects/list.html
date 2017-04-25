@@ -1,0 +1,217 @@
+<template name="listProjects">
+  {{#contentFor "headerTitle"}}
+  <h1 class="title">{{_ "projects"}} {{#if city}} : {{city.name}}{{/if}}</h1>
+  {{/contentFor}}
+  {{#contentFor "headerButtonLeft"}}
+  <button class="button button-clear pull-left" data-ion-menu-toggle="left">
+  {{#if isAndroid}}
+    {{> ionIcon icon='android-more-vertical'}}
+  {{else}}
+    {{> ionIcon icon='navicon'}}
+  {{/if}}
+  </button>
+  {{/contentFor}}
+
+  {{#contentFor "headerButtonRight"}}
+
+  <button class="button button-clear icon ion-android-notifications brand-base-text-color pull-right" data-ion-menu-toggle="right">
+   {{#if notificationsCount}}<div class="new-notification-bubble">{{notificationsCount}}</div>{{/if}}
+  </button>
+
+  {{/contentFor}}
+
+{{#if dataReady}}
+  {{#ionView}}
+  {{#ionContent class="scroll-bg"}}
+  <div class="list list-inset">
+    <label class="item item-input">
+      <i class="icon ion-search placeholder-icon"></i>
+      <input id="search" type="text" placeholder="{{_ "Search..."}}" value="{{searchProjects}}">
+    </label>
+    {{#if dataReady}}
+    <div class="button-bar bar-positive">
+      <a class="button" href="{{pathFor 'projectsAdd'}}">{{_ "Add project"}} {{> ionIcon icon="android-add-circle"}}</a>
+    </div>
+    {{/if}}
+  </div>
+
+    <div class="list list-inset">
+
+      <div class="item item-divider">
+        <i class="ion-android-calendar"></i> {{_ "projects"}} <span class="badge badge-dark">{{countProjects}}</span>
+      </div>
+      {{#if dataReady}}
+      {{#transition in="zoomIn" out="bounceOut"}}
+      {{#each projects}}
+      <a class="item {{#if profilThumbImageUrl}}item-thumbnail-left{{/if}} animated in" href="{{pathFor 'newsList' _id=this._id._str scope="projects"}}">
+        {{#if profilThumbImageUrl}}
+          <img src="{{urlImageCommunecter}}{{profilThumbImageUrl}}">
+        {{/if}}
+        <h2>{{name}}</h2>
+        <span class="badge {{#if isStart}}badge-balanced{{else}}badge-dark{{/if}}"><i class="icon ion-person"></i> {{countContributors}}</span>
+        {{#if startDate}}
+        <p>
+          {{#if isStart}}
+          <i class="icon ion-android-alarm-clock"></i> {{_ "start"}} : {{livestamp startDate}} <br>
+          {{#if endDate}}
+          <i class="icon ion-android-alarm-clock"></i> {{_ "end"}} : {{livestamp endDate}} <br>
+          <i class="icon ion-android-time"></i> {{_ "duration"}} : {{diffInText startDate endDate}}<br>
+          {{/if}}
+          {{else}}
+          <i class="icon ion-android-alarm-clock"></i> {{_ "start"}} : {{livestamp startDate}} <br>
+          {{#if endDate}}
+          <i class="icon ion-android-time"></i> {{_ "duration"}} : {{diffInText startDate endDate}}<br>
+          {{/if}}
+          {{/if}}
+        </p>
+        {{/if}}
+        <p><a class="positive" href="{{pathFor 'mapWith' _id=_id._str scope='projects'}}"><i class="icon ion-ios-location"></i> {{_ "distance"}} : {{distance geo}} </a></p>
+        {{#if currentUser}}
+        {{#if isCreator}}
+
+        {{/if}}
+        {{/if}}
+      </a>
+       {{else}}
+
+      {{/each}}
+      {{/transition}}
+      {{/if}}
+    </div>
+
+  {{/ionContent}}
+  {{/ionView}}
+
+  {{#if currentUser}}
+  {{#ionTabs class="tabs-dark tabs-icon-only"}}
+  {{> ionTab title=_events path="listProjects" iconOff="navicon-round" iconOn="navicon-round"}}
+  {{#unless dataReady}}
+  <a class="tab-item">
+   <i class="fa fa-refresh fa-spin" style="font-size: 18px;"></i>
+  </a>
+  {{else}}
+  {{> ionTab title=_cartes href="map/projects" iconOff="android-pin" iconOn="android-pin"}}
+  {{/unless}}
+  {{/ionTabs}}
+  {{/if}}
+  {{else}}
+  {{> loading count=dataReadyPourcentage}}
+  {{/if}}
+</template>
+
+<template name="projectsAdd">
+  {{#contentFor "headerButtonLeft"}}
+  {{>ionNavBackButton}}
+  {{/contentFor}}
+
+  {{#contentFor "headerButtonRight"}}
+
+  {{/contentFor}}
+
+  {{#contentFor "headerTitle"}}
+  <h1 class="title">{{_ "projects"}}</h1>
+  {{/contentFor}}
+
+  {{#ionView}}
+  {{#ionContent}}
+  <div class="list">
+    <div class="item item-divider">
+      {{_ "Create a project"}}
+    </div>
+    {{#if error}}
+    <div class="card">
+      <div class="item item-text-wrap animated shake homestead text-center">
+        {{_ error}}
+      </div>
+    </div>
+    {{/if}}
+    {{#autoForm id="addProject" schema=SchemasProjectsRest type="method" meteormethod="insertProject" template="ionic" class="padding"}}
+    {{> projectsFields}}
+    <div class="item">
+      <div class="button-bar">
+        <button type="submit" class="button button-dark">{{_ "create"}}</button>
+      </div>
+    </div>
+    {{/autoForm}}
+  </div>
+  {{/ionContent}}
+  {{/ionView}}
+</template>
+
+
+<template name="projectsEdit">
+  {{#contentFor "headerButtonLeft"}}
+  {{>ionNavBackButton}}
+  {{/contentFor}}
+
+  {{#contentFor "headerButtonRight"}}
+
+  {{/contentFor}}
+
+  {{#contentFor "headerTitle"}}
+  <h1 class="title">{{_ "projects"}}</h1>
+  {{/contentFor}}
+
+{{#if dataReady}}
+  {{#ionView}}
+  {{#ionContent}}
+  <div class="list">
+    <div class="item item-divider">
+      {{_ "Edit a project"}}
+    </div>
+    {{#if error}}
+    <div class="card">
+      <div class="item item-text-wrap animated shake homestead text-center">
+        {{_ error}}
+      </div>
+    </div>
+    {{/if}}
+    {{#autoForm id="editProject" schema=SchemasProjectsRest type="method-update" meteormethod="updateProject" doc=project template="ionic" class="padding"}}
+    {{> projectsFields update="1"}}
+    <div class="item">
+      <div class="button-bar">
+        <button type="submit" class="button button-dark">{{_ "edit"}}</button>
+      </div>
+    </div>
+    {{/autoForm}}
+  </div>
+  {{/ionContent}}
+  {{/ionView}}
+  {{else}}
+  {{> loading}}
+  {{/if}}
+</template>
+
+<template name="projectsFields">
+  {{> afQuickField name='name'}}
+  {{> afQuickField name='shortDescription' rows=8}}
+  {{#if update}}
+  {{> afQuickField name='description' rows=8}}
+  {{/if}}
+  {{> afQuickField name='url'}}
+  {{> afQuickField name='startDate' type="datetime-local"}}
+  {{> afQuickField name='endDate' type="datetime-local"}}
+  {{> afQuickField name='country' autocomplete="off" value=country }}
+  {{#if currentFieldValue "country"}}
+  {{> afQuickField name='postalCode' value=postalCode autocomplete="off"}}
+  {{#if currentFieldValue "postalCode"}}
+  {{#if optionsInsee}}
+  {{> afQuickField name='city' options=optionsInsee value=city}}
+  {{> afQuickField name='cityName' type="hidden" value=cityName}}
+  {{else}}
+  <div class="item item-text-wrap assertive"><i class="icon ion-android-alert"></i> {{_ "Error not postal code match"}}</div>
+  {{/if}}
+  {{/if}}
+  {{> afQuickField name='streetAddress' autocomplete="off"}}
+  {{#if latlng}}
+  {{> map}}
+  {{/if}}
+  {{> afQuickField name='geoPosLatitude' type="hidden" value=latitude}}
+  {{> afQuickField name='geoPosLongitude' type="hidden" value=longitude}}
+  {{> afQuickField name='regionName' type="hidden" value=regionName}}
+  {{> afQuickField name='depName' type="hidden" value=depName}}
+  {{/if}}
+  {{#if update}}
+  {{> afQuickField name='preferences'}}
+  {{/if}}
+</template>

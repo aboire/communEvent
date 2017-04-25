@@ -170,31 +170,108 @@ Citoyens.attachSchema(
     }
   }));
 
-  if(Meteor.isClient){
+  //if(Meteor.isClient){
+  import { News } from './news.js';
+  import { Events } from './events.js';
+  import { Projects } from './projects.js';
+  import { Organizations } from './organizations.js';
 
     Citoyens.helpers({
+      isMe (){
+        return this._id._str === Meteor.userId();
+      },
       isFollows (followId){
         return this.links && this.links.follows && this.links.follows[followId];
       },
-      knows () {
-        //this.links.knows
-        if(this && this.links && this.links.knows){
-          let knowsIds = _.map(this.links.knows, function(num, key){
-            let objectId = new Mongo.ObjectID(key);
-            return objectId;
-          });
-          return Citoyens.find({_id:{$in:knowsIds}});
+      isFollowsMe (){
+        return this.links && this.links.follows && this.links.follows[Meteor.userId()];
+      },
+      listFollows (){
+        if(this.links && this.links.follows){
+          let follows = _.map(this.links.follows, function(follows,key){
+             return new Mongo.ObjectID(key);
+           });
+            return Citoyens.find({_id:{$in:follows}},{sort: {"name": 1} });
+        } else{
+          return false;
         }
       },
-      countKnows () {
-        if(this && this.links && this.links.knows){
-          let knowsIds = _.map(this.links.knows, function(num, key){
-            let objectId = new Mongo.ObjectID(key);
-            return objectId;
-          });
-          return Citoyens.find({_id:{$in:knowsIds}}).count();
+      countFollows () {
+        return this.links && this.links.follows && _.size(this.links.follows);
+      },
+      isFollowers (followId){
+        return this.links && this.links.followers && this.links.followers[followId];
+      },
+      isFollowersMe (){
+        return this.links && this.links.followers && this.links.followers[Meteor.userId()];
+      },
+      listFollowers (){
+        if(this.links && this.links.followers){
+          let followers = _.map(this.links.followers, function(followers,key){
+             return new Mongo.ObjectID(key);
+           });
+            return Citoyens.find({_id:{$in:followers}},{sort: {"name": 1} });
+        } else{
+          return false;
         }
+      },
+      countFollowers () {
+        return this.links && this.links.followers && _.size(this.links.followers);
+      },
+      listMemberOf (){
+        if(this.links && this.links.memberOf){
+          let memberOf = _.map(this.links.memberOf, function(memberOf,key){
+             return new Mongo.ObjectID(key);
+           });
+            return Organizations.find({_id:{$in:memberOf}},{sort: {"name": 1} });
+        } else{
+          return false;
+        }
+      },
+      countMemberOf () {
+        return this.links && this.links.memberOf && _.size(this.links.memberOf);
+      },
+      listEvents (){
+        if(this.links && this.links.events){
+          let events = _.map(this.links.events, function(events,key){
+             return new Mongo.ObjectID(key);
+           });
+            return Events.find({_id:{$in:events}},{sort: {"name": 1} });
+        } else{
+          return false;
+        }
+      },
+      countEvents () {
+        return this.links && this.links.events && _.size(this.links.events);
+      },
+      listProjects (){
+        if(this.links && this.links.projects){
+          let projects = _.map(this.links.projects, function(projects,key){
+             return new Mongo.ObjectID(key);
+           });
+            return Projects.find({_id:{$in:projects}},{sort: {"name": 1} });
+        } else{
+          return false;
+        }
+      },
+      countProjects () {
+        return this.links && this.links.projects && _.size(this.links.projects);
+      },
+      scopeVar () {
+        return 'citoyens';
+      },
+      scopeEdit () {
+        return 'citoyensEdit';
+      },
+      listScope () {
+        return 'listCitoyens';
+      },
+      news () {
+        return News.find({'target.id':Router.current().params._id},{sort: {"created": -1},limit: Session.get('limit') });
+      },
+      new () {
+        return News.findOne({_id:new Mongo.ObjectID(Router.current().params.newsId)});
       }
     });
 
-  }
+  //}

@@ -9,7 +9,7 @@ import { ReactiveDict } from 'meteor/reactive-dict';
 import { Location } from 'meteor/djabatav:geolocation-plus';
 
 //submanager
-import { listEventsSubs } from '../../api/client/subsmanager.js';
+import { listEventsSubs,listOrganizationsSubs,listProjectsSubs,listCitoyensSubs,dashboardSubs } from '../../api/client/subsmanager.js';
 
 let pageSession = new ReactiveDict('pageChangePosition');
 
@@ -60,7 +60,7 @@ Template.changePosition.onRendered(function () {
       onOk: function(){
         Session.set( 'city', self);
         if(self.geoShape && self.geoShape.coordinates){
-          Session.set('radius', false);          
+          Session.set('radius', false);
         }
         Session.set('geolocate',  false);
         Location.setMockLocation({
@@ -70,7 +70,11 @@ Template.changePosition.onRendered(function () {
         });
         //clear cache
         listEventsSubs.clear();
-        Router.go('listEvents');
+        listOrganizationsSubs.clear();
+        listProjectsSubs.clear();
+        listCitoyensSubs.clear();
+        dashboardSubs.clear();
+        Router.go('dashboard');
     }
     });
 

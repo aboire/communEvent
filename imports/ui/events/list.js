@@ -1,5 +1,3 @@
-import './list.html';
-
 import { Meteor } from 'meteor/meteor';
 import { Session } from 'meteor/session';
 import { Template } from 'meteor/templating';
@@ -22,68 +20,46 @@ import { NotificationHistory } from '../../api/notification_history.js';
 import { Cities } from '../../api/cities.js';
 
 //submanager
-import { listEventsSubs } from '../../api/client/subsmanager.js';
+import { dashboardSubs,listEventsSubs,listOrganizationsSubs,listProjectsSubs,listsSubs } from '../../api/client/subsmanager.js';
 
-let pageSession = new ReactiveDict('pageEvents');
+import '../map/map.js';
 
-Template.map.onCreated(function () {
+import './list.html';
 
-});
+import { pageSession } from '../../api/client/reactive.js';
 
-Template.map.onRendered(function () {
-  var self = this;
-  L.mapbox.accessToken = Meteor.settings.public.mapbox;
-  let map = L.mapbox.map('map','mapbox.streets');
-  var marker;
-  self.autorun(function(c) {
-    let city = pageSession.get('city') || AutoForm.getFieldValue('city');
-    let latitude = pageSession.get('geoPosLatitude') || AutoForm.getFieldValue('geoPosLatitude');
-    let longitude = pageSession.get('geoPosLongitude') || AutoForm.getFieldValue('geoPosLongitude');
-    //console.log(`${city} ${latitude} ${longitude}`);
-    if (latitude && longitude) {
-      //console.log('recompute');
-      map.setView(new L.LatLng(parseFloat(latitude), parseFloat(longitude)), 13);
-      if(marker){
-        map.removeLayer(marker);
-      }
-      marker = L.marker(new L.LatLng(parseFloat(latitude), parseFloat(longitude))).bindPopup('Vous êtes ici :)').addTo(map);
-    }
-    //c.stop();
-  });
-
-});
 
 Template.listEvents.onCreated(function () {
-  var self = this;
-  self.ready = new ReactiveVar();
+  const template = Template.instance();
+  template.ready = new ReactiveVar();
   pageSession.set('sortEvents', null);
   pageSession.set('searchEvents', null);
 
   //mettre sur layer ?
-  Meteor.subscribe('citoyen');
+  //Meteor.subscribe('citoyen');
 
   //sub listEvents
-  self.autorun(function(c) {
+  this.autorun(function(c) {
     let geo = Location.getReactivePosition();
     let radius = Session.get('radius');
     console.log(radius);
     if(radius && geo && geo.latitude){
       console.log('sub list events geo radius');
       let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      let handle = listEventsSubs.subscribe('citoyenEvents',latlng,radius);
-          self.ready.set(handle.ready());
+      const handle = listEventsSubs.subscribe('geo.scope','events',latlng,radius);
+          template.ready.set(handle.ready());
     }else{
       console.log('sub list events city');
       let city = Session.get('city');
       if(city && city.geoShape && city.geoShape.coordinates){
-        let handle = listEventsSubs.subscribe('citoyenEvents',city.geoShape);
-            self.ready.set(handle.ready());
+        const handle = listEventsSubs.subscribe('geo.scope','events',city.geoShape);
+            template.ready.set(handle.ready());
       }
     }
 
   });
 
-  self.autorun(function(c) {
+  this.autorun(function(c) {
     let geo = Location.getReactivePosition();
     if(geo && geo.latitude){
       let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
@@ -114,6 +90,9 @@ Template.listEvents.onRendered(function() {
           });
           //clear cache
           listEventsSubs.clear();
+          listOrganizationsSubs.clear();
+          listProjectsSubs.clear();
+          dashboardSubs.clear();
         }
       },
       onCancel: function(){
@@ -222,6 +201,15 @@ Template.listEvents.helpers({
   },
   city (){
     return Session.get('city');
+  },
+  dataReady() {
+  return Template.instance().ready.get();
+  },
+  dataReadyAll() {
+  return Template.instance().ready.get() && Events.find({}).count() === Counts.get(`countScopeGeo.events`);
+  },
+  dataReadyPourcentage() {
+  return  `${Events.find({}).count()}/${Counts.get('countScopeGeo.events')}`;
   }
 });
 
@@ -241,6 +229,8 @@ Template.listEvents.events({
 });
 
 Template.eventsAdd.onCreated(function () {
+  const template = Template.instance();
+  template.ready = new ReactiveVar();
   pageSession.set('error', false );
   pageSession.set('postalCode', null);
   pageSession.set('country', null);
@@ -250,10 +240,18 @@ Template.eventsAdd.onCreated(function () {
   pageSession.set('depName', null);
   pageSession.set('geoPosLatitude', null);
   pageSession.set('geoPosLongitude', null);
-  this.subscribe('lists');
+
+  this.autorun(function(c) {
+      const handleList = listsSubs.subscribe('lists');
+      if(handleList.ready()){
+        template.ready.set(handleList.ready());
+      }
+  });
 });
 
 Template.eventsEdit.onCreated(function () {
+  const template = Template.instance();
+  template.ready = new ReactiveVar();
   pageSession.set('error', false );
   pageSession.set('postalCode', null);
   pageSession.set('country', null);
@@ -263,11 +261,23 @@ Template.eventsEdit.onCreated(function () {
   pageSession.set('depName', null);
   pageSession.set('geoPosLatitude', null);
   pageSession.set('geoPosLongitude', null);
+
+  this.autorun(function(c) {
+      const handleList = listsSubs.subscribe('lists');
+      const handle = Meteor.subscribe('scopeDetail','events',Router.current().params._id);
+      if(handleList.ready() && handle.ready()){
+        template.ready.set(handle.ready());
+      }
+  });
+
 });
 
 Template.eventsAdd.helpers({
   error () {
     return pageSession.get( 'error' );
+  },
+  dataReady() {
+  return Template.instance().ready.get();
   }
 });
 
@@ -278,9 +288,23 @@ Template.eventsEdit.helpers({
     eventEdit._id = event._id._str;
     eventEdit.name = event.name;
     eventEdit.type = event.type;
+    eventEdit.shortDescription = event.shortDescription;
     eventEdit.description = event.description;
     eventEdit.startDate = event.startDate;
     eventEdit.endDate = event.endDate;
+    if(event && event.preferences){
+      eventEdit.preferences = {};
+      if(event.preferences.isOpenData == "true"){
+        eventEdit.preferences.isOpenData = true;
+      }else{
+        eventEdit.preferences.isOpenData = false;
+      }
+      if(event.preferences.isOpenEdition == "true"){
+        eventEdit.preferences.isOpenEdition = true;
+      }else{
+        eventEdit.preferences.isOpenEdition = false;
+      }
+    }
     eventEdit.allDay = event.allDay;
     eventEdit.country = event.address.addressCountry;
     eventEdit.postalCode = event.address.postalCode;
@@ -301,6 +325,9 @@ Template.eventsEdit.helpers({
   },
   error () {
     return pageSession.get( 'error' );
+  },
+  dataReady() {
+  return Template.instance().ready.get();
   }
 });
 
@@ -487,7 +514,7 @@ AutoForm.addHooks(['addEvent', 'editEvent'], {
   after: {
     method : function(error, result) {
       if (!error) {
-        IonModal.close();
+        Router.go('newsList', {_id:result.data.id,scope:'events'});
       }
     },
     "method-update" : function(error, result) {
@@ -499,7 +526,7 @@ AutoForm.addHooks(['addEvent', 'editEvent'], {
   onError: function(formType, error) {
     if (error.errorType && error.errorType === 'Meteor.Error') {
       if (error && error.error === "error_call") {
-        pageSession.set( 'error', error.reason.replace(":", " "));
+        pageSession.set( 'error', error.reason.replace(": ", ""));
       }
     }
     //let ref;
@@ -509,13 +536,5 @@ AutoForm.addHooks(['addEvent', 'editEvent'], {
       //AutoForm.validateField(this.formId, 'name');
       //}
     //}
-  }
-});
-
-AutoForm.addHooks(['addEvent'], {
-  before: {
-    method : function(doc, template) {
-      return doc;
-    }
   }
 });

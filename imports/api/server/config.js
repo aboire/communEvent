@@ -65,6 +65,22 @@ Accounts.registerLoginHandler(function(loginRequest) {
 Push.debug = true;
 
 Push.Configure({
+  gcm: {
+    apiKey: 'AIzaSyCVVHtLfG9UoudCBctnysh6jT3N6C1qrRg',
+    projectNumber: 183063213318
+  }
+   //'production': true,
+   //'sound': true,
+   //'badge': true,
+   //'alert': true,
+   //'vibrate': true,
+  // 'sendInterval': 15000, Configurable interval between sending
+  // 'sendBatchSize': 1, Configurable number of notifications to send per batch
+  // 'keepNotifications': false,
+//
+});
+
+/*Push.Configure({
   apn: {
     certData: Assets.getText('apn-production/PushCommunEventCert.pem'),
     keyData: Assets.getText('apn-production/PushCommunEventKey.pem'),
@@ -85,10 +101,10 @@ Push.Configure({
   // 'sendBatchSize': 1, Configurable number of notifications to send per batch
   // 'keepNotifications': false,
 //
-});
+});*/
 
 Push.allow({
         send: function(userId, notification) {
-            return true;
+            return false;
         }
 });

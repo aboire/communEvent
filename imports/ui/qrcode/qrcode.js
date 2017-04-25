@@ -5,7 +5,10 @@ import { Router } from 'meteor/iron:router';
 import { $ } from 'meteor/jquery';
 
  Template.qrcode.rendered = function(){
-   let qrresult = {type:"event",_id:Router.current().params._id};
+   const scope = Router.current().params.scope;
+   const type = (scope === 'citoyens') ? 'person' : scope.substring(0,scope.length-1);
+   console.log(type);
+   let qrresult = {type:type,_id:Router.current().params._id};
    let qr = JSON.stringify(qrresult);
    console.log(qr);
 	this.$('#qrcode').qrcode({

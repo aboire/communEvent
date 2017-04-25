@@ -1,18 +1,18 @@
 App.info({
-  id: 'org.communevent.meteor.pixelhumain',
-  name: 'communEvent',
-  description: 'communecter event',
+  id: 'org.communecter.mobile',
+  name: 'communecter',
+  description: 'communecter mobile',
   author: 'thomas',
   email: 'thomas.craipeau@gmail.com',
-  version: '0.0.31',
-  buildNumber: '327'
+  version: '0.0.1',
+  buildNumber: '101'
 });
 
 App.setPreference('android-targetSdkVersion', '23');
 App.setPreference('android-minSdkVersion', '19');
 
 App.configurePlugin('phonegap-plugin-push', {
-  SENDER_ID: 501293889946
+  SENDER_ID: 183063213318
 });
 
 App.icons({
@@ -60,7 +60,7 @@ App.accessRule('http://qa.communecter.org/*', { type: 'navigation' });
 App.accessRule('https://qa.communecter.org/*', { type: 'navigation' });
 App.accessRule('http://www.communecter.org/*', { type: 'navigation' });
 App.accessRule('https://www.communecter.org/*', { type: 'navigation' });
-App.accessRule('https://communevent.communecter.org/*');
+App.accessRule('https://co-mobile.communecter.org/*');
 App.accessRule('http://localhost*');
 App.accessRule('*.openstreetmap.org/*', { type: 'navigation' });
 App.accessRule('*.tile.thunderforest.com/*', { type: 'navigation' });

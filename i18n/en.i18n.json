@@ -6,7 +6,7 @@
   "home":"Home",
   "events":"Events",
   "projects":"Project",
-  "citoyens":"Citoyens",
+  "persons":"Persons",
   "organizations":"Organizations",
   "email":"Email",
   "password":"Password",
@@ -40,6 +40,7 @@
   "edit a news":"Edit a news",
   "edit":"Edit",
   "create":"Publier",
+  "cancel":"Cancel",
   "Communecter Login Failed":"Communecter Login Failed",
   "Email not valid":"Email not valid",
   "Email not unique":"Email not unique",
@@ -63,6 +64,10 @@
   "No Items found":"No contact found",
   "Enter a search term":"Enter a search term. minimum 4 characters",
   "attendees":"Attendees",
+  "members":"Members",
+  "contributors":"Contributors",
+  "follows":"Follows",
+  "loading":"loading...",
   "online":"online",
   "offline":"offline",
   "settings":"Settings",
@@ -76,7 +81,20 @@
   "notValidatedEmail":"Your account is not validated : please check your mailbox to validate your email address.",
   "emailNotFound":"Impossible to find an account for this username or password.",
   "emailAndPassNotMatch":"Email or password does not march. Please try again !",
-  "Cities":"Villes",
+  "Add organization":"Add organization",
+  "Create a organization":"Create a organization",
+  "Edit a organization":"Edit a organization",
+  "Something went really bad An organization with the same name allready exists":"An organization with the same name allready exists",
+  "Participate":"Participate",
+  "QR Scanner":"QR Scanner",
+  "Become a member":"Become a member",
+  "Become a contributor":"Become a contributor",
+  "Follow this person":"Follow this person",
+  "Unfollow this person":"Unfollow this person",
+  "Add project":"Add project",
+  "Create a project":"Create a project",
+  "Edit a project":"Edit a project",
+  "Cities":"Cities",
   "schemas":{
     "followrest":{
       "invitedUserName":{
@@ -90,8 +108,17 @@
       "name":{
         "label": "name"
       },
+      "shortDescription":{
+        "label": "short description"
+      },
       "description":{
         "label": "description"
+      },
+      "url":{
+        "label": "url"
+      },
+      "tags":{
+        "label": "tags"
       },
       "type":{
         "label": "type",
@@ -128,6 +155,130 @@
       },
       "streetAddress":{
         "label": "street address"
+      },
+      "preferences":{
+        "label": "preferences",
+        "isOpenData":{
+          "label": "is Open Data"
+        },
+        "isOpenEdition":{
+          "label": "is Open Edition"
+        }
+      }
+    },
+    "organizationsrest" : {
+      "name":{
+        "label": "name"
+      },
+      "shortDescription":{
+        "label": "short description"
+      },
+      "description":{
+        "label": "description"
+      },
+      "type":{
+        "label": "type",
+        "placeholder": "Select one...",
+        "options": {
+
+        }
+      },
+      "role":{
+        "label": "role",
+        "placeholder": "Select one...",
+        "options": {
+
+        }
+      },
+      "email":{
+        "label": "email"
+      },
+      "url":{
+        "label": "url"
+      },
+      "tags":{
+        "label": "tags"
+      },
+      "country":{
+        "label": "address country",
+        "placeholder": "Select one...",
+        "options": {
+
+        }
+      },
+      "postalCode":{
+        "label": "postal code"
+      },
+      "city":{
+        "label": "code insee",
+        "placeholder": "Select one...",
+        "options": {
+
+        }
+      },
+      "streetAddress":{
+        "label": "street address"
+      },
+      "preferences":{
+        "label": "preferences",
+        "isOpenData":{
+          "label": "is Open Data"
+        },
+        "isOpenEdition":{
+          "label": "is Open Edition"
+        }
+      }
+    },
+    "projectsrest" : {
+      "name":{
+        "label": "name"
+      },
+      "shortDescription":{
+        "label": "short description"
+      },
+      "description":{
+        "label": "description"
+      },
+      "url":{
+        "label": "url"
+      },
+      "tags":{
+        "label": "tags"
+      },
+      "startDate":{
+        "label": "start date"
+      },
+      "endDate":{
+        "label": "end date"
+      },
+      "country":{
+        "label": "address country",
+        "placeholder": "Select one...",
+        "options": {
+
+        }
+      },
+      "postalCode":{
+        "label": "postal code"
+      },
+      "city":{
+        "label": "code insee",
+        "placeholder": "Select one...",
+        "options": {
+
+        }
+      },
+      "streetAddress":{
+        "label": "street address"
+      },
+      "preferences":{
+        "label": "preferences",
+        "isOpenData":{
+          "label": "is Open Data"
+        },
+        "isOpenEdition":{
+          "label": "is Open Edition"
+        }
       }
     },
     "news":{
@@ -136,6 +287,16 @@
       },
       "text":{
         "label": "message"
+      }
+    },
+    "comments":{
+      "content":{
+        "label": "message",
+        "placeholder":"message"
+      },
+      "text":{
+        "label": "message",
+        "placeholder":"message"
       }
     }
   }

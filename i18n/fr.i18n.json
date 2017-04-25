@@ -6,7 +6,7 @@
   "home":"Accueil",
   "events":"Evenements",
   "projects":"Projets",
-  "citoyens":"Citoyens",
+  "persons":"Citoyens",
   "organizations":"Organisations",
   "email":"Email",
   "username":"Nom d'utilisateur",
@@ -40,6 +40,7 @@
   "edit a news":"Editer une news",
   "edit":"Editer",
   "create":"Publier",
+  "cancel":"Annuler",
   "Communecter Login Failed":"Échec de la connexion",
   "Email not valid":"Email non valide",
   "Email not unique":"Email déja présent",
@@ -63,6 +64,10 @@
   "No Items found":"Aucun contact trouvé",
   "Enter a search term":"Entrez un terme de recherche. 4 caractères minimum",
   "attendees":"Participants",
+  "members":"Membres",
+  "contributors":"Contributeurs",
+  "follows":"Personnes que je suis",
+  "loading":"chargement...",
   "online":"en ligne",
   "offline":"hors ligne",
   "settings":"Réglages",
@@ -71,12 +76,25 @@
   "Invitations contacts":"Invitations contacts",
   "Change location":"Changer de position",
   "Search a city or postal code":"Rechercher une ville ou un code postal",
-  "Cities":"Villes",
   "accountPending":"Vous avez été invité(e) : vous n'avez plus qu'à finir l'inscription pour vous connecter.",
   "betaTestNotOpen":"Nos développeurs sont au taquet et ne dorment plus pour que la plateforme sorte bientôt ! Vérifiez votre boite aux lettres, ça arrive bientôt !",
   "notValidatedEmail":"Votre compte n'est pas validé : un mail vous a été envoyé sur votre boite mail.",
   "emailNotFound":"impossible de trouver un compte avec ce nom d'utilisateur ou cet email.",
   "emailAndPassNotMatch":"Email ou Mot de Passe ne correspondent pas, rééssayez.",
+  "Add organization":"Ajouter une organisation",
+  "Create a organization":"Créer une organisation",
+  "Edit a organization":"Modifier une organisation",
+  "Something went really bad An organization with the same name allready exists":"Une organisation avec le même nom existe déjà",
+  "Participate":"Participer",
+  "QR Scanner":"Scanner QR",
+  "Become a member":"Devenir membre",
+  "Become a contributor":"Devenir contributeur",
+  "Follow this person":"Suivre cette personne",
+  "Unfollow this person":"Ne plus suivre cette personne",
+  "Add project":"Ajouter un projet",
+  "Create a project":"Créer un projet",
+  "Edit a project":"Modifier un projet",
+  "Cities":"Villes",
   "schemas":{
     "followrest":{
       "invitedUserName":{
@@ -90,8 +108,17 @@
       "name":{
         "label": "Nom"
       },
+      "shortDescription":{
+        "label": "Description courte"
+      },
       "description":{
         "label": "Description"
+      },
+      "url":{
+        "label": "Url"
+      },
+      "tags":{
+        "label": "Tags"
       },
       "type":{
         "label": "Type",
@@ -128,6 +155,136 @@
       },
       "streetAddress":{
         "label": "Adresse"
+      },
+      "preferences":{
+        "label": "Préférences",
+        "isOpenData":{
+          "label": "Open Data"
+        },
+        "isOpenEdition":{
+          "label": "Open Edition"
+        }
+      }
+    },
+    "organizationsrest" : {
+      "name":{
+        "label": "Nom"
+      },
+      "shortDescription":{
+        "label": "Description courte"
+      },
+      "description":{
+        "label": "Description"
+      },
+      "url":{
+        "label": "Url"
+      },
+      "tags":{
+        "label": "Tags"
+      },
+      "type":{
+        "label": "Type",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+
+        }
+      },
+      "role":{
+        "label": "Role",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+
+        }
+      },
+      "email":{
+        "label": "Email"
+      },
+      "url":{
+        "label": "Url"
+      },
+      "tags":{
+        "label": "Tags"
+      },
+      "country":{
+        "label": "Pays",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+
+        }
+      },
+      "postalCode":{
+        "label": "Code postal"
+      },
+      "city":{
+        "label": "Ville",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+
+        }
+      },
+      "streetAddress":{
+        "label": "Adresse"
+      },
+      "preferences":{
+        "label": "Préférences",
+        "isOpenData":{
+          "label": "Open Data"
+        },
+        "isOpenEdition":{
+          "label": "Open Edition"
+        }
+      }
+    },
+    "projectsrest" : {
+      "name":{
+        "label": "Nom"
+      },
+      "shortDescription":{
+        "label": "Description courte"
+      },
+      "description":{
+        "label": "Description"
+      },
+      "url":{
+        "label": "Url"
+      },
+      "tags":{
+        "label": "Tags"
+      },
+      "startDate":{
+        "label": "Date de début"
+      },
+      "endDate":{
+        "label": "Date de fin"
+      },
+      "country":{
+        "label": "Pays",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+
+        }
+      },
+      "postalCode":{
+        "label": "Code postal"
+      },
+      "city":{
+        "label": "Ville",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+
+        }
+      },
+      "streetAddress":{
+        "label": "Adresse"
+      },
+      "preferences":{
+        "label": "Préférences",
+        "isOpenData":{
+          "label": "Open Data"
+        },
+        "isOpenEdition":{
+          "label": "Open Edition"
+        }
       }
     },
     "news":{
@@ -136,6 +293,16 @@
       },
       "text":{
         "label": "Message"
+      }
+    },
+    "comments":{
+      "content":{
+        "label": "message",
+        "placeholder":"comment..."
+      },
+      "text":{
+        "label": "message",
+        "placeholder":"comment..."
       }
     }
   }
