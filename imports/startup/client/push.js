@@ -2,47 +2,48 @@ import { Meteor } from 'meteor/meteor';
 import { Push } from 'meteor/raix:push';
 import { Router } from 'meteor/iron:router';
 
-import { NotificationHistory } from '../../api/notification_history.js';
+import { ActivityStream } from '../../api/activitystream.js';
 
 Meteor.startup(function () {
 	if (Meteor.isDesktop){
 		console.log('DESKTOP');
-		let initNotifystart = NotificationHistory.find().observe({
+		let initNotifystart = ActivityStream.find().observe({
 			added: function(notification) {
 				if(!initNotifystart) return ;
-				console.log(NotificationHistory.find({}).count());
-				Desktop.send('systemNotifications', 'setBadge', NotificationHistory.find({}).count());
+				console.log(ActivityStream.find({}).count());
+				Desktop.send('systemNotifications', 'setBadge', ActivityStream.find({}).count());
 			},
 			changed: function(notification) {
 				//console.log(NotificationHistory.find({}).count());
-				Desktop.send('systemNotifications', 'setBadge', NotificationHistory.find({}).count());
+				Desktop.send('systemNotifications', 'setBadge', ActivityStream.find({}).count());
 			},
 			removed: function(notification) {
 				//console.log(NotificationHistory.find({}).count());
-				Desktop.send('systemNotifications', 'setBadge', NotificationHistory.find({}).count());
+				Desktop.send('systemNotifications', 'setBadge', ActivityStream.find({}).count());
 			}
 		});
 
-		var initNotifystart = NotificationHistory.find({'addedAt': {$gt: new Date()}}).observe({
+		var initNotifystart = ActivityStream.find({'created': {$gt: new Date()}}).observe({
 			added: function(notification) {
 				if(!initNotifystart) return ;
 				console.log(Desktop.getAssetUrl('\___desktop\icon.png'));
 				Desktop.send('systemNotifications', 'notify', {
-				title: notification.title,
-				text: notification.text,
+				title: 'notification',
+				text: notification.notify.displayName,
 				icon: '\___desktop\icon.png',
 				data: notification,
 		});
-			Desktop.send('systemNotifications', 'setBadge', NotificationHistory.find({}).count());
+			Desktop.send('systemNotifications', 'setBadge', ActivityStream.find({}).count());
 			}
 		});
 
 Desktop.on('systemNotifications', 'notificationClicked', (sender, data) => {
 	console.log(data);
-		if(data.link){
-			Meteor.call('markRead',data._id);
-			Meteor.call('registerClick', data._id);
-			Router.go(data.link);
+		if(data.notify.url){
+			//Meteor.call('markRead',data._id);
+			//Meteor.call('registerClick', data._id);
+			//Router.go(data.link);
+			Router.go('/notifications');
 		}else{
 			Router.go('/notifications');
 		}
@@ -50,25 +51,25 @@ Desktop.on('systemNotifications', 'notificationClicked', (sender, data) => {
 
 	} else {
 		if(Meteor.isCordova){
-			let initNotifystart = NotificationHistory.find().observe({
+			let initNotifystart = ActivityStream.find().observe({
 				added: function(notification) {
 					if(!initNotifystart) return ;
 					//console.log(NotificationHistory.find({}).count());
-					Push.setBadge(NotificationHistory.find({}).count());
+					Push.setBadge(ActivityStream.find({}).count());
 				},
 				changed: function(notification) {
 					//console.log(NotificationHistory.find({}).count());
-					Push.setBadge(NotificationHistory.find({}).count());
+					Push.setBadge(ActivityStream.find({}).count());
 				},
 				removed: function(notification) {
 					//console.log(NotificationHistory.find({}).count());
-					Push.setBadge(NotificationHistory.find({}).count());
+					Push.setBadge(ActivityStream.find({}).count());
 				}
 			});
 
 			Push.Configure({
 				android: {
-					senderID: 501293889946,
+					senderID: 183063213318,
 					alert: true,
 					badge: true,
 					sound: true,
@@ -91,16 +92,17 @@ Desktop.on('systemNotifications', 'notificationClicked', (sender, data) => {
 			Push.addListener('message', function(notification) {
 				function alertDismissed(buttonIndex) {
 					if(buttonIndex===1){
-						if(notification.payload.link){
-							Meteor.call('markRead',notification.payload.notifId);
-							Meteor.call('registerClick', notification.payload.notifId);
-							Router.go(notification.payload.link);
+						if(notification.payload.url){
+							//Meteor.call('markRead',notification.payload.notifId);
+							//Meteor.call('registerClick', notification.payload.notifId);
+							//Router.go(notification.payload.link);
+							Router.go('/notifications');
 						}else{
 							Router.go('/notifications');
 						}
 					}
 				}
-				window.confirm(notification.message, alertDismissed, notification.payload.title, ["Voir","fermer"]);
+				window.confirm(notification.message, alertDismissed, 'notifications', ["Voir","fermer"]);
 			});
 
 		}else{
@@ -115,7 +117,7 @@ Desktop.on('systemNotifications', 'notificationClicked', (sender, data) => {
 				}
 
 				if (Notification.permission === "granted") {
-					var initNotifystart = NotificationHistory.find({'addedAt': {$gt: new Date()}}).observe({
+					var initNotifystart = ActivityStream.find({'created': {$gt: new Date()}}).observe({
 						added: function(notification) {
 							if(!initNotifystart) return ;
 							//console.log(NotificationHistory.find({}).count());
@@ -135,17 +137,18 @@ Desktop.on('systemNotifications', 'notificationClicked', (sender, data) => {
 						 });*/
 
 							let options = {
-								body: notification.text,
+								body: notification.notify.displayName,
 								icon: '/icon.png',
 								data: notification
 							}
-							let n = new Notification(notification.title,options);
+							let n = new Notification('notification',options);
 							n.onclick = function(e) {
-								if(notification.link){
-									console.log(notification.link);
-									Meteor.call('markRead',notification._id);
-									Meteor.call('registerClick', notification._id);
-									Router.go(notification.link);
+								if(notification.notify.url){
+									console.log(notification.notify.url);
+									//Meteor.call('markRead',notification._id);
+									//Meteor.call('registerClick', notification._id);
+									//Router.go(notification.link);
+									Router.go('/notifications');
 									//window.open(Router.path[notification.link].url(), '_self');
 									window.focus();
 								}else{

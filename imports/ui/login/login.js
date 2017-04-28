@@ -12,6 +12,7 @@ import { Location } from 'meteor/djabatav:geolocation-plus';
 import { IsValidEmail } from 'meteor/froatsnook:valid-email';
 
 import { pageSession } from '../../api/client/reactive.js';
+import { position } from '../../api/client/position.js';
 
 Template.login.onCreated(function () {
   pageSession.set( 'error', false );
@@ -77,9 +78,10 @@ Template.signin.onRendered(function () {
   if(geolocate){
     var onOk=IonPopup.confirm({template:TAPi18n.__('Utiliser votre position actuelle ?'),
     onOk: function(){
-      let geo = Location.getReactivePosition();
+      let geo = position.getLatlng()
       if(geo && geo.latitude){
         let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
+
         Meteor.call('getcitiesbylatlng',latlng,function(error, result){
           if(result){
             pageSession.set('codepostal', result.postalCodes[0].postalCode);

@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import { _ } from 'meteor/underscore';
+import { moment } from 'meteor/momentjs:moment';
 
 //Person
 export const Citoyens = new Meteor.Collection("citoyens", {idGeneration : 'MONGO'});
@@ -175,8 +176,40 @@ Citoyens.attachSchema(
   import { Events } from './events.js';
   import { Projects } from './projects.js';
   import { Organizations } from './organizations.js';
+  import { Documents } from './documents.js';
+  import { queryLink,queryOptions } from './helpers.js';
 
     Citoyens.helpers({
+      isVisibleFields (field){
+        if(this.isMe()){
+          return true;
+        }else{
+          if(this.isPublicFields(field)){
+            return true;
+          }else{
+            if(this.isFollowersMe() && this.isPrivateFields(field)){
+              return true;
+            }else{
+              return false;
+            }
+          }
+        }
+      },
+      isPublicFields (field){
+         return this.preferences && this.preferences.publicFields && _.contains(this.preferences.publicFields, field);
+      },
+      isPrivateFields (field){
+        return this.preferences && this.preferences.privateFields && _.contains(this.preferences.privateFields, field);
+      },
+      formatBirthDate(){
+        return moment(this.birthDate).format('DD/MM/YYYY');
+      },
+      documents (){
+      return Documents.find({
+        id : this._id._str,
+        contentKey : "profil"
+      },{sort: {"created": -1},limit: 1 });
+      },
       isMe (){
         return this._id._str === Meteor.userId();
       },
@@ -186,12 +219,10 @@ Citoyens.attachSchema(
       isFollowsMe (){
         return this.links && this.links.follows && this.links.follows[Meteor.userId()];
       },
-      listFollows (){
+      listFollows (search){
         if(this.links && this.links.follows){
-          let follows = _.map(this.links.follows, function(follows,key){
-             return new Mongo.ObjectID(key);
-           });
-            return Citoyens.find({_id:{$in:follows}},{sort: {"name": 1} });
+           const query = queryLink(this.links.follows,search);
+            return Citoyens.find(query,queryOptions);
         } else{
           return false;
         }
@@ -205,12 +236,10 @@ Citoyens.attachSchema(
       isFollowersMe (){
         return this.links && this.links.followers && this.links.followers[Meteor.userId()];
       },
-      listFollowers (){
+      listFollowers (search){
         if(this.links && this.links.followers){
-          let followers = _.map(this.links.followers, function(followers,key){
-             return new Mongo.ObjectID(key);
-           });
-            return Citoyens.find({_id:{$in:followers}},{sort: {"name": 1} });
+           const query = queryLink(this.links.followers,search);
+            return Citoyens.find(query,queryOptions);
         } else{
           return false;
         }
@@ -218,12 +247,10 @@ Citoyens.attachSchema(
       countFollowers () {
         return this.links && this.links.followers && _.size(this.links.followers);
       },
-      listMemberOf (){
+      listMemberOf (search){
         if(this.links && this.links.memberOf){
-          let memberOf = _.map(this.links.memberOf, function(memberOf,key){
-             return new Mongo.ObjectID(key);
-           });
-            return Organizations.find({_id:{$in:memberOf}},{sort: {"name": 1} });
+            const query = queryLink(this.links.memberOf,search);
+            return Organizations.find(query,queryOptions);
         } else{
           return false;
         }
@@ -231,12 +258,10 @@ Citoyens.attachSchema(
       countMemberOf () {
         return this.links && this.links.memberOf && _.size(this.links.memberOf);
       },
-      listEvents (){
+      listEvents (search){
         if(this.links && this.links.events){
-          let events = _.map(this.links.events, function(events,key){
-             return new Mongo.ObjectID(key);
-           });
-            return Events.find({_id:{$in:events}},{sort: {"name": 1} });
+           const query = queryLink(this.links.events,search);
+            return Events.find(query,queryOptions);
         } else{
           return false;
         }
@@ -244,12 +269,10 @@ Citoyens.attachSchema(
       countEvents () {
         return this.links && this.links.events && _.size(this.links.events);
       },
-      listProjects (){
+      listProjects (search){
         if(this.links && this.links.projects){
-          let projects = _.map(this.links.projects, function(projects,key){
-             return new Mongo.ObjectID(key);
-           });
-            return Projects.find({_id:{$in:projects}},{sort: {"name": 1} });
+           const query = queryLink(this.links.projects,search);
+            return Projects.find(query,queryOptions);
         } else{
           return false;
         }

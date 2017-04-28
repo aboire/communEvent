@@ -10,7 +10,7 @@ const callPixelRest = (token,method,controller,action,post) => {
   let responsePost = HTTP.call( method, Meteor.settings.endpoint+'/communecter/'+controller+'/'+action, {
     headers:{
       'X-Auth-Token' : token,
-      'Origin':"http://meteor.communecter.org"
+      'Origin':"https://co-mobile.communecter.org"
     },
     params: post,
     npmRequestOptions : {
@@ -30,10 +30,41 @@ const callPixelRest = (token,method,controller,action,post) => {
   }
 }
 
+const callPixelMethodRest = (token,method,controller,action,post) => {
+  post["X-Auth-Token"] = token;
+  //console.log(post);
+  let responsePost = HTTP.call( method, Meteor.settings.endpoint+'/communecter/'+controller+'/'+action, {
+    headers:{
+      'X-Auth-Token' : token,
+      'Origin':"https://co-mobile.communecter.org"
+    },
+    params: post,
+    npmRequestOptions : {
+      jar: true
+    }
+  });
+  console.log(responsePost);
+  if(responsePost && responsePost.data){
+    return responsePost;
+  }else{
+      throw new Meteor.Error("error_server", "error server");
+  }
+}
+
 apiCommunecter.postPixel = function(controller,action,params){
   var userC = Meteor.users.findOne({_id:Meteor.userId()});
   if(userC && userC.services && userC.services.resume && userC.services.resume.loginTokens && userC.services.resume.loginTokens[0] && userC.services.resume.loginTokens[0].hashedToken){
     var retour = callPixelRest(userC.services.resume.loginTokens[0].hashedToken,"POST",controller,action,params);
+    return retour;
+  }else{
+    throw new Meteor.Error("Error identification");
+  }
+};
+
+apiCommunecter.postPixelMethod = function(controller,action,params){
+  var userC = Meteor.users.findOne({_id:Meteor.userId()});
+  if(userC && userC.services && userC.services.resume && userC.services.resume.loginTokens && userC.services.resume.loginTokens[0] && userC.services.resume.loginTokens[0].hashedToken){
+    var retour = callPixelMethodRest(userC.services.resume.loginTokens[0].hashedToken,"POST",controller,action,params);
     return retour;
   }else{
     throw new Meteor.Error("Error identification");

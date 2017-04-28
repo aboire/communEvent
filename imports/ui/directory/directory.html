@@ -1,0 +1,355 @@
+<template name="directory">
+  {{#contentFor "headerTitle"}}
+  <h1 class="title">{{_ "community"}}</h1>
+  {{/contentFor}}
+
+  {{#contentFor "headerButtonLeft"}}
+  {{>ionNavBackButton}}
+  {{/contentFor}}
+
+  {{#contentFor "headerButtonRight"}}
+
+  {{/contentFor}}
+
+  {{#if dataReady}}
+  {{#ionView}}
+  {{#ionContent}}
+
+  {{> Template.dynamic template=scopeDirectoryTemplate data=scope}}
+
+  {{/ionContent}}
+  {{/ionView}}
+  {{else}}
+{{> loading}}
+{{/if}}
+</template>
+
+<template name="listDirectorycitoyens">
+  <div class="list list-inset">
+    <label class="item item-input">
+      <i class="icon ion-search placeholder-icon"></i>
+      <input id="search" type="text" placeholder="{{_ "Search..."}}" value="{{search}}">
+    </label>
+    <div class="button-bar button-small">
+      <a class="button button-dark all"><i class="icon fa fa-th-list"></i></a>
+      <a class="button button-person follows"><i class="icon fa fa-user"></i></a>
+      <a class="button button-organization memberof"><i class="icon fa fa-users"></i></a>
+      <a class="button button-event events"><i class="icon fa fa-calendar"></i></a>
+      <a class="button button-project projects"><i class="icon fa fa-lightbulb-o"></i></a>
+      <a class="button button-follower followers"><i class="icon fa fa-heart"></i></a>
+    </div>
+  </div>
+  {{#if view 'all'}}
+  {{> listDirectoryFollows}}
+  {{> listDirectoryMemberOf}}
+  {{> listDirectoryProjects}}
+  {{> listDirectoryEvents}}
+  {{> listDirectoryFollowers}}
+  {{else}}
+  {{#if view 'follows'}}
+  {{> listDirectoryFollows}}
+  {{/if}}
+  {{#if view 'memberof'}}
+  {{> listDirectoryMemberOf}}
+  {{/if}}
+  {{#if view 'projects'}}
+  {{> listDirectoryProjects}}
+  {{/if}}
+  {{#if view 'events'}}
+  {{> listDirectoryEvents}}
+  {{/if}}
+  {{#if view 'followers'}}
+  {{> listDirectoryFollowers}}
+  {{/if}}
+  {{/if}}
+</template>
+
+<template name="listDirectoryorganizations">
+  <div class="list list-inset">
+    <label class="item item-input">
+      <i class="icon ion-search placeholder-icon"></i>
+      <input id="search" type="text" placeholder="{{_ "Search..."}}" value="{{search}}">
+    </label>
+    <div class="button-bar button-small">
+      <a class="button button-dark all"><i class="icon fa fa-th-list"></i></a>
+      <a class="button button-person members"><i class="icon fa fa-user"></i></a>
+      <a class="button button-organization membersorganizations"><i class="icon fa fa-users"></i></a>
+      <a class="button button-event events"><i class="icon fa fa-calendar"></i></a>
+      <a class="button button-project projects"><i class="icon fa fa-lightbulb-o"></i></a>
+      <a class="button button-follower followers"><i class="icon fa fa-heart"></i></a>
+    </div>
+  </div>
+  {{#if view 'all'}}
+  {{> listDirectoryMembers}}
+  {{> listDirectoryMembersOrganizations}}
+  {{> listDirectoryProjects}}
+  {{> listDirectoryEvents}}
+  {{> listDirectoryFollowers}}
+  {{else}}
+  {{#if view 'members'}}
+  {{> listDirectoryMembers}}
+  {{/if}}
+  {{#if view 'membersorganizations'}}
+  {{> listDirectoryMembersOrganizations}}
+  {{/if}}
+  {{#if view 'projects'}}
+  {{> listDirectoryProjects}}
+  {{/if}}
+  {{#if view 'events'}}
+  {{> listDirectoryEvents}}
+  {{/if}}
+  {{#if view 'followers'}}
+  {{> listDirectoryFollowers}}
+  {{/if}}
+  {{/if}}
+</template>
+
+<template name="listDirectoryprojects">
+  <div class="list list-inset">
+    <label class="item item-input">
+      <i class="icon ion-search placeholder-icon"></i>
+      <input id="search" type="text" placeholder="{{_ "Search..."}}" value="{{search}}">
+    </label>
+    <div class="button-bar button-small">
+      <a class="button button-dark all"><i class="icon fa fa-th-list"></i></a>
+      <a class="button button-person contributors"><i class="icon fa fa-user"></i></a>
+      <a class="button button-event events"><i class="icon fa fa-calendar"></i></a>
+      <a class="button button-follower followers"><i class="icon fa fa-heart"></i></a>
+    </div>
+  </div>
+  {{#if view 'all'}}
+  {{> listDirectoryContributors}}
+  {{> listDirectoryEvents}}
+  {{> listDirectoryFollowers}}
+  {{else}}
+  {{#if view 'contributors'}}
+    {{> listDirectoryContributors}}
+  {{/if}}
+  {{#if view 'events'}}
+  {{> listDirectoryEvents}}
+  {{/if}}
+  {{#if view 'followers'}}
+  {{> listDirectoryFollowers}}
+  {{/if}}
+  {{/if}}
+</template>
+
+<template name="listDirectoryContributors">
+  <div class="padding">
+    <div class="list">
+      <div class="item item-divider">
+        <i class="icon ion-ios-people"></i> {{_ "contributors"}} <span class="badge badge-dark">{{countContributors}}</span>
+      </div>
+      {{#transition in="zoomIn" out="bounceOut"}}
+      {{#each listContributors search}}
+      <div class="item item-avatar item-button-right animated out">
+        {{> imgDoc}}
+        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='citoyens'}}" class="dark">{{name}}</a></h2>
+        {{#if isContributors}}
+        <button class="button button-positive unfollowperson-link">
+          <i class="icon fa fa-unlink"></i>
+        </button>
+        {{else}}
+        <button class="button button-dark followperson-link">
+          <i class="icon fa fa-link"></i>
+        </button>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{/transition}}
+    </div>
+  </div>
+</template>
+
+<template name="listDirectoryFollows">
+  <div class="padding">
+    <div class="list">
+      <div class="item item-divider">
+        <i class="icon ion-ios-people"></i> {{_ "follows"}} <span class="badge badge-dark">{{countFollows}}</span>
+      </div>
+      {{#transition in="zoomIn" out="bounceOut"}}
+      {{#each listFollows search}}
+      <div class="item item-avatar item-button-right animated out">
+        {{> imgDoc}}
+        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='citoyens'}}" class="dark">{{name}}</a></h2>
+        {{#if isFollowersMe}}
+        <button class="button button-positive unfollowperson-link">
+          <i class="icon fa fa-unlink"></i>
+        </button>
+        {{else}}
+        <button class="button button-dark followperson-link">
+          <i class="icon fa fa-link"></i>
+        </button>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{/transition}}
+    </div>
+  </div>
+</template>
+
+<template name="listDirectoryFollowers">
+  <div class="padding">
+    <div class="list">
+      <div class="item item-divider">
+        <i class="icon ion-ios-heart"></i> {{_ "favorites"}} <span class="badge badge-dark">{{countFollowers}}</span>
+      </div>
+      {{#transition in="zoomIn" out="bounceOut"}}
+      {{#each listFollowers search}}
+      <div class="item item-avatar item-button-right animated out">
+        {{> imgDoc}}
+        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='citoyens'}}" class="dark">{{name}}</a></h2>
+        {{#if isFollowsMe}}
+        <button class="button button-positive unfollowperson-link">
+          <i class="icon fa fa-unlink"></i>
+        </button>
+        {{else}}
+        <button class="button button-dark followperson-link">
+          <i class="icon fa fa-link"></i>
+        </button>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{/transition}}
+    </div>
+  </div>
+</template>
+
+
+<template name="listDirectoryMemberOf">
+  <div class="padding">
+    <div class="list">
+      <div class="item item-divider">
+        <i class="icon ion-ios-people"></i> {{_ "organizations"}} <span class="badge badge-dark">{{countMemberOf}}</span>
+      </div>
+      {{#transition in="zoomIn" out="bounceOut"}}
+      {{#each listMemberOf search}}
+      <div class="item item-avatar item-button-right animated out">
+        {{> imgDoc}}
+        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='organizations'}}" class="dark">{{name}}</a></h2>
+        {{#if isMembers}}
+        <button class="button button-positive disconnectscope-link">
+          <i class="icon fa fa-unlink"></i>
+        </button>
+        {{else}}
+        <button class="button button-dark connectscope-link">
+          <i class="icon fa fa-link"></i>
+        </button>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{/transition}}
+    </div>
+  </div>
+</template>
+
+<template name="listDirectoryMembers">
+  <div class="padding">
+    <div class="list">
+      <div class="item item-divider">
+        <i class="icon ion-ios-people"></i> {{_ "members"}} <span class="badge badge-dark">{{countMembers}}</span>
+      </div>
+      {{#transition in="zoomIn" out="bounceOut"}}
+      {{#each listMembers search}}
+      <div class="item item-avatar item-button-right animated out">
+        {{> imgDoc}}
+        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='citoyens'}}" class="dark">{{name}}</a></h2>
+        {{#if isMembers}}
+        <button class="button button-positive unfollowperson-link">
+          <i class="icon fa fa-unlink"></i>
+        </button>
+        {{else}}
+        <button class="button button-dark followperson-link">
+          <i class="icon fa fa-link"></i>
+        </button>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{/transition}}
+    </div>
+  </div>
+</template>
+
+<template name="listDirectoryMembersOrganizations">
+  <div class="padding">
+    <div class="list">
+      <div class="item item-divider">
+        <i class="icon ion-ios-people"></i> {{_ "organizations"}} <span class="badge badge-dark">{{countMembersOrganizations}}</span>
+      </div>
+      {{#transition in="zoomIn" out="bounceOut"}}
+      {{#each listMembersOrganizations search}}
+      <div class="item item-avatar item-button-right animated out">
+        {{> imgDoc}}
+        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='organizations'}}" class="dark">{{name}}</a></h2>
+        {{#if isMembers}}
+        <button class="button button-positive disconnectscope-link">
+          <i class="icon fa fa-unlink"></i>
+        </button>
+        {{else}}
+        <button class="button button-dark connectscope-link">
+          <i class="icon fa fa-link"></i>
+        </button>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{/transition}}
+    </div>
+  </div>
+</template>
+
+<template name="listDirectoryProjects">
+  <div class="padding">
+    <div class="list">
+      <div class="item item-divider">
+        <i class="icon ion-ios-people"></i> {{_ "projects"}} <span class="badge badge-dark">{{countProjects}}</span>
+      </div>
+      {{#transition in="zoomIn" out="bounceOut"}}
+      {{#each listProjects search}}
+      <div class="item item-avatar item-button-right animated out">
+        {{> imgDoc}}
+        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='projects'}}" class="dark">{{name}}</a></h2>
+        <button class="button button-positive disconnectscope-link">
+          <i class="icon fa fa-unlink"></i>
+        </button>
+        {{#if isContributors}}
+        <button class="button button-positive disconnectscope-link">
+          <i class="icon fa fa-unlink"></i>
+        </button>
+        {{else}}
+        <button class="button button-dark connectscope-link">
+          <i class="icon fa fa-link"></i>
+        </button>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{/transition}}
+    </div>
+  </div>
+</template>
+
+<template name="listDirectoryEvents">
+  <div class="padding">
+    <div class="list">
+      <div class="item item-divider">
+        <i class="icon ion-ios-people"></i> {{_ "events"}} <span class="badge badge-dark">{{countEvents}}</span>
+      </div>
+      {{#transition in="zoomIn" out="bounceOut"}}
+      {{#each listEvents search}}
+      <div class="item item-avatar item-button-right animated out">
+        {{> imgDoc}}
+        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='events'}}" class="dark">{{name}}</a></h2>
+        {{#if isAttendees}}
+        <button class="button button-positive disconnectscope-link">
+          <i class="icon fa fa-unlink"></i>
+        </button>
+        {{else}}
+        <button class="button button-dark connectscope-link">
+          <i class="icon fa fa-link"></i>
+        </button>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{/transition}}
+    </div>
+  </div>
+</template>

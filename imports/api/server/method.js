@@ -7,7 +7,8 @@ import { URL } from 'meteor/url';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 //collection et schemas
-import { NotificationHistory } from '../notification_history.js';
+//import { NotificationHistory } from '../notification_history.js';
+import { ActivityStream } from '../activitystream.js';
 import { Citoyens,SchemasFollowRest,SchemasInviteAttendeesEventRest } from '../citoyens.js';
 import { News,SchemasNewsRest } from '../news.js';
 import { Documents } from '../documents.js';
@@ -373,10 +374,20 @@ followEntity (connectId,parentType,childId){
     if (!this.userId) {
       throw new Meteor.Error("not-authorized");
     }
+    /*name:syl
+locality:
+searchType[]:persons
+searchType[]:organizations
+searchType[]:projects
+searchType[]:events
+searchType[]:cities
+searchBy:ALL
+indexMin:0
+indexMax:20*/
     search.indexMin = 0;
-    search.indexMax= 50;
-    var retour = apiCommunecter.postPixel("search","globalautocomplete",search);
-    return retour;
+    search.indexMax= 20;
+    var retour = apiCommunecter.postPixelMethod("search","globalautocomplete",search);
+    return retour.data;
   },
   updateSettings (type,value,typeEntity,idEntity){
     check(type, String);
@@ -971,72 +982,52 @@ pushUser (title,text,payload,query,badge){
     badge: badge
   });
 },
-insertNotification (notifObj){
-  if (!this.userId) {
-    throw new Meteor.Error("not-authorized");
-  }
-  return  NotificationHistory.insert(notifObj)
-
-},
 markRead (notifId) {
   if (!this.userId) {
     throw new Meteor.Error("not-authorized");
   }
   // //console.log('mark as read click') // for testing
-  return NotificationHistory.update({
+  /*return NotificationHistory.update({
     '_id': notifId
   }, {
     $addToSet: {
       'dismissals': this.userId
     }
-  })
+  })*/
 },
-alertCount (attendeesId){
+alertCount (){
   if (!this.userId) {
     throw new Meteor.Error("not-authorized");
   }
-  return NotificationHistory.find({
-    'expiration': {
-      $gt: new Date()
-    },
-    'dismissals': {
-      $nin: [attendeesId]
-    },
-    'userId': {
-      $in: [attendeesId]
-    }
-  }).count();
+  return ActivityStream.find({
+		'notify.id': {
+			$in: [this.userId]
+		}
+	}, {
+		sort: {
+			'created': 1
+		}
+	}).count();
 },
 registerClick (notifId) {
   if (!this.userId) {
     throw new Meteor.Error("not-authorized");
   }
   // //console.log('notification click') // for testing
-  return NotificationHistory.update({
+  /*return NotificationHistory.update({
     '_id': notifId
   }, {
     $addToSet: {
       'clicks': this.userId
     }
-  })
+  })*/
 },
 allRead () {
   if (!this.userId) {
     throw new Meteor.Error("not-authorized");
   }
-  // //console.log('notification click') // for testing
-  return NotificationHistory.update({
-    'dismissals': {
-      $nin: [this.userId]
-    },
-    'userId': {
-      $in: [this.userId]
-    }
-  }, {
-    $addToSet: {
-      'dismissals': this.userId
-    }
-  },{ multi: true})
+  var retour = apiCommunecter.postPixel("notification","markallnotificationasread",{});
+  return retour;
 },
 isEmailValid: function(address) {
   check(address, String);

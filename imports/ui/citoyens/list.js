@@ -26,6 +26,7 @@ import '../map/map.js';
 import './list.html';
 
 import { pageSession } from '../../api/client/reactive.js';
+import { position } from '../../api/client/position.js';
 
 
 Template.listCitoyens.onCreated(function () {
@@ -39,13 +40,11 @@ Template.listCitoyens.onCreated(function () {
 
   //sub listCitoyens
   self.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    let radius = Session.get('radius');
-    console.log(radius);
-    if(radius && geo && geo.latitude){
+    const radius = position.getRadius();
+    const latlngObj = position.getLatlngObject();
+    if (radius && latlngObj) {
       console.log('sub list citoyens geo radius');
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      let handle = listCitoyensSubs.subscribe('geo.scope','citoyens',latlng,radius);
+      let handle = listCitoyensSubs.subscribe('geo.scope','citoyens',latlngObj,radius);
           self.ready.set(handle.ready());
     }else{
       console.log('sub list citoyens city');
@@ -59,10 +58,9 @@ Template.listCitoyens.onCreated(function () {
   });
 
   self.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    if(geo && geo.latitude){
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      Meteor.call('getcitiesbylatlng',latlng,function(error, result){
+    const latlngObj = position.getLatlngObject();
+    if (latlngObj) {
+      Meteor.call('getcitiesbylatlng',latlngObj,function(error, result){
         if(result){
           //console.log('call city');
           Session.set('city', result);

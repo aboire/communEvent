@@ -32,11 +32,12 @@
         <p>{{currentUser.profile.pixelhumain.email}}</p>
       </div>
 
-      <a class="item item-stable item-icon-right" href="{{pathFor 'dashboard'}}" data-ion-menu-close>{{_ "Dashboard"}} {{> ionIcon icon="android-contacts"}}</a>
+      <a class="item item-stable item-icon-right" href="{{pathFor 'dashboard'}}" data-ion-menu-close>{{_ "Dashboard"}} {{> ionIcon icon="ios-speedometer"}}</a>
       <a class="item item-stable item-icon-right" href="{{pathFor 'listEvents'}}" data-ion-menu-close>{{_ "events"}} {{> ionIcon icon="calendar"}}</a>
       <a class="item item-stable item-icon-right" href="{{pathFor 'listOrganizations'}}" data-ion-menu-close>{{_ "organizations"}} {{> ionIcon icon="person-stalker"}}</a>
       <a class="item item-stable item-icon-right" href="{{pathFor 'listProjects'}}" data-ion-menu-close>{{_ "projects"}} {{> ionIcon icon="lightbulb"}}</a>
       <a class="item item-stable item-icon-right" href="{{pathFor 'listCitoyens'}}" data-ion-menu-close>{{_ "persons"}} {{> ionIcon icon="person"}}</a>
+      <a class="item item-stable item-icon-right" href="{{pathFor 'searchGlobal'}}" data-ion-menu-close>{{_ "search"}} {{> ionIcon icon="search"}}</a>
 
       {{#if isCordova}}
       <a class="item item-stable item-icon-right" href="{{pathFor 'contacts'}}" data-ion-menu-close>{{_ "Invitations contacts"}} {{> ionIcon icon="android-contacts"}}</a>

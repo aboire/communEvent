@@ -116,6 +116,12 @@ Router.map(function() {
     loadingTemplate: 'loading'
   });
 
+  this.route("directory", {
+    template: "directory",
+    path: ':scope/directory/:_id',
+    loadingTemplate: 'loading'
+  });
+
   this.route("listeventSous", {
     template: "listeventSous",
     path: 'events/sous/:_id',
@@ -194,6 +200,12 @@ Router.map(function() {
   this.route('notifications', {
     template: "notifications",
     path: '/notifications',
+    loadingTemplate: 'loading'
+  });
+
+  this.route('searchGlobal', {
+    template: "searchGlobal",
+    path: '/search',
     loadingTemplate: 'loading'
   });
 

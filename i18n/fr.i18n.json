@@ -95,6 +95,10 @@
   "Create a project":"Créer un projet",
   "Edit a project":"Modifier un projet",
   "Cities":"Villes",
+  "community":"Communauté",
+  "favorites":"Favoris",
+  "search":"Chercher",
+  "searchPlaceholder":"Chercher par nom, #tag...",
   "schemas":{
     "followrest":{
       "invitedUserName":{

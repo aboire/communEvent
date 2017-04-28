@@ -19,6 +19,8 @@ import { nameToCollection } from '../../api/helpers.js';
 //submanager
 import { listEventsSubs,listOrganizationsSubs,listProjectsSubs,listCitoyensSubs } from '../../api/client/subsmanager.js';
 
+import { position } from '../../api/client/position.js';
+
 import './mapscope.html';
 
 window.Events = Events;
@@ -45,15 +47,12 @@ Template.mapCanvas.onCreated(function () {
 
   //sub listEvents
   self.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    let radius = Session.get('radius');
-    if(radius && geo && geo.latitude){
-      console.log('sub list events geo radius');
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      let handle = subs[Router.current().params.scope].subscribe('geo.scope',Router.current().params.scope,latlng,radius);
+    const radius = position.getRadius();
+    const latlngObj = position.getLatlngObject();
+    if (radius && latlngObj) {
+      let handle = subs[Router.current().params.scope].subscribe('geo.scope',Router.current().params.scope,latlngObj,radius);
       self.ready.set(handle.ready());
     }else{
-      console.log('sub list events city');
       let city = Session.get('city');
       if(city && city.geoShape && city.geoShape.coordinates){
         let handle = subs[Router.current().params.scope].subscribe('geo.scope',Router.current().params.scope,city.geoShape);
@@ -154,7 +153,7 @@ let clusters, map , markers = [ ];
 const initialize = ( element, zoom, features ) => {
   let self = this;
   let city = Session.get('city');
-  let geo = Location.getReactivePosition();
+  let geo = position.getLatlng();
   if(geo && geo.latitude){
     L.mapbox.accessToken = Meteor.settings.public.mapbox;
     map = L.mapbox.map(element,'mapbox.streets').setView(new L.LatLng(parseFloat(geo.latitude), parseFloat(geo.longitude)), zoom);

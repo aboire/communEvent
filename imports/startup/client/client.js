@@ -13,7 +13,7 @@ import { AutoForm } from 'meteor/aldeed:autoform';
 import { moment } from 'meteor/momentjs:moment';
 
 //collections
-import { NotificationHistory } from '../../api/notification_history.js';
+import { ActivityStream } from '../../api/activitystream.js';
 import { Documents } from '../../api/documents.js';
 
 //schemas
@@ -34,18 +34,6 @@ Meteor.startup(function () {
     window.alert = navigator.notification.alert;
     window.confirm = navigator.notification.confirm;
   }
-
-Session.setDefault('geolocate', true);
-Session.setDefault('radius', 25000);
-Session.setDefault('GPSstart', false);
-
-if(Meteor._localStorage.getItem('radius')){
-  Session.set('radius', parseInt(Meteor._localStorage.getItem('radius')));
-}
-
-if(Meteor._localStorage.getItem('geolocate')){
-  Session.set('geolocate', JSON.parse(Meteor._localStorage.getItem('geolocate')));
-}
 
 let language = window.navigator.userLanguage || window.navigator.language;
 if (language.indexOf('-') !== -1)
@@ -78,22 +66,7 @@ SchemasNewsRest.i18n("schemas.news");
 SchemasCommentsRest.i18n("schemas.comments");
 SchemasCommentsEditRest.i18n("schemas.comments");
 
-Template.registerHelper('distance',function (coordinates) {
-  let geo = Location.getReactivePosition();
-  if(geo && geo.latitude){
-    let rmetre=geolib.getDistance(
-      {latitude: parseFloat(coordinates.latitude), longitude: parseFloat(coordinates.longitude)},
-      {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)});
-      if(rmetre>1000){
-        let rkm=rmetre/1000;
-        return 	rkm+' km';
-      }else{
-        return 	rmetre+' m';
-      }
-    }else{
-      return false;
-    }
-  });
+
 
 Template.registerHelper('equals',
   function(v1, v2) {
@@ -121,6 +94,12 @@ function(start, end) {
 Template.registerHelper('isCordova',
 function() {
   return Meteor.isCordova;
+}
+);
+
+Template.registerHelper('notificationsCount',
+function() {
+  return ActivityStream.find({}).count();
 }
 );
 
@@ -158,79 +137,4 @@ Template.registerHelper("SchemasProjectsRest", SchemasProjectsRest);
 Template.registerHelper("SchemasCommentsRest", SchemasCommentsRest);
 Template.registerHelper("SchemasCommentsEditRest", SchemasCommentsEditRest);
 
-let success = function (state) {
-  if(state === 'Enabled') {
-    console.log("GPS Is Enabled");
-    Session.set('GPSstart', true);
-    Location.locate(function(pos){
-      Session.set('geo',pos);
-      //console.log(pos);
-    }, function(err){
-      console.log(err.message);
-      Session.set('GPSstart', false);
-      Session.set('geo',null);
-      Session.set('geoError',err.message);
-    });
-  }else if(state==="Disabled"){
-    console.log("GPS Is Disabled");
-    Session.set('GPSstart', false);
-    Session.set('geo',null);
-    Session.set('geoError','GPS Is Disabled');
-  }else if(state=='NotDetermined' || state=='Restricted'){
-    console.log("Never asked user for auhtorization");
-    Session.set('GPSstart', false);
-    Session.set('geo',null);
-    Session.set('geoError','Never asked user for auhtorization');
-  }else if(state==='Denied'){
-    console.log("Asked User for authorization but they denied");
-    Session.set('GPSstart', false);
-    Session.set('geo',null);
-    Session.set('geoError','Asked User for authorization but they denied');
-  }
-}
-
-let failure = function () {
-  //console.log("Failed to get the GPS State");
-  Session.set('geoError','Failed to get the GPS State');
-  Session.set('GPSstart', false);
-}
-
-Location.getGPSState(success, failure, {
-  dialog: false
-});
-
-});
-
-
-Tracker.autorun(function() {
-  if (Meteor.userId() && Meteor.user()) {
-    let geolocate = Session.get('geolocate');
-    if(geolocate){
-      Location.startWatching(function(pos){
-        //console.log("Got a position!", pos);
-      }, function(err){
-        //console.log("Oops! There was an error", err);
-      });
-    }else{
-      Location.stopWatching();
-    }
-  }
-});
-
-Tracker.autorun(function() {
-  if (Reload.isWaitingForResume()) {
-    alert("Fermer et ré-ouvrir cette application pour obtenir la nouvelle version!");
-    //window.location.reload();
-  }
-});
-
-Tracker.autorun(function() {
-  let geoError = Session.get('geoError');
-  if (geoError) {
-    //alert(geoError);
-  }
-});
-
-Location.setGetPositionOptions({
-  enableHighAccuracy: false,
 });

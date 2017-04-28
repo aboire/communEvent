@@ -112,7 +112,16 @@ export const SchemasNewsRest =   new SimpleSchema({
     });
   }else{
     import { Citoyens } from './citoyens.js'
+    import { Documents } from './documents.js';
     News.helpers({
+      photoNewsAlbums () {
+        if(this.media && this.media.images){
+          let arrayId = this.media.images.map((_id) => {
+            return new Mongo.ObjectID(_id)
+          })
+        return Documents.find({_id: { $in: arrayId }});
+      }
+      },
       authorNews () {
         return Citoyens.findOne({_id:new Mongo.ObjectID(this.author)});
       },

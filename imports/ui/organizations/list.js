@@ -12,11 +12,9 @@ import { Mongo } from 'meteor/mongo';
 import { HTTP } from 'meteor/http';
 import { Mapbox } from 'meteor/pauloborges:mapbox';
 
-
 //collections
 import { Citoyens } from '../../api/citoyens.js';
 import { Organizations } from '../../api/organizations.js';
-import { NotificationHistory } from '../../api/notification_history.js';
 import { Cities } from '../../api/cities.js';
 
 //submanager
@@ -27,7 +25,8 @@ import '../map/map.js';
 import './list.html';
 
 import { pageSession } from '../../api/client/reactive.js';
-
+import { position } from '../../api/client/position.js';
+import { searchQuery } from '../../api/helpers.js';
 
 Template.listOrganizations.onCreated(function () {
   var self = this;
@@ -40,13 +39,11 @@ Template.listOrganizations.onCreated(function () {
 
   //sub listOrganizations
   self.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    let radius = Session.get('radius');
-    console.log(radius);
-    if(radius && geo && geo.latitude){
+    const radius = position.getRadius();
+    const latlngObj = position.getLatlngObject();
+    if (radius && latlngObj) {
       console.log('sub list organizations geo radius');
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      let handle = listOrganizationsSubs.subscribe('geo.scope','organizations',latlng,radius);
+      let handle = listOrganizationsSubs.subscribe('geo.scope','organizations',latlngObj,radius);
           self.ready.set(handle.ready());
     }else{
       console.log('sub list organizations city');
@@ -60,10 +57,9 @@ Template.listOrganizations.onCreated(function () {
   });
 
   self.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    if(geo && geo.latitude){
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      Meteor.call('getcitiesbylatlng',latlng,function(error, result){
+    const latlngObj = position.getLatlngObject();
+    if (latlngObj) {
+      Meteor.call('getcitiesbylatlng',latlngObj,function(error, result){
         if(result){
           //console.log('call city');
           Session.set('city', result);
@@ -92,6 +88,7 @@ Template.listOrganizations.onRendered(function() {
           listEventsSubs.clear();
           listOrganizationsSubs.clear();
           listProjectsSubs.clear();
+          listCitoyensSubs.clear();
           dashboardSubs.clear();
         }
       },
@@ -112,12 +109,7 @@ Template.listOrganizations.helpers({
     let searchOrganizations= pageSession.get('searchOrganizations');
     let query={};
     if(searchOrganizations){
-      if ( searchOrganizations.charAt( 0 ) == '#' ) {
-        query['name']={$regex : searchOrganizations, '$options' : 'i'}
-      }else{
-        query['name']={$regex : searchOrganizations, '$options' : 'i'}
-      }
-
+      query = searchQuery(query,searchOrganizations);
     }
     return Organizations.find(query);
   },
@@ -126,26 +118,12 @@ Template.listOrganizations.helpers({
     let searchOrganizations= pageSession.get('searchOrganizations');
     let query={};
     if(searchOrganizations){
-      query['name']={$regex : searchOrganizations, '$options' : 'i'}
+      query = searchQuery(query,searchOrganizations);
     }
     return Organizations.find(query).count();
   },
   searchOrganizations (){
     return pageSession.get('searchOrganizations');
-  },
-  notificationsCountOld (){
-    let notificationsCountOld = pageSession.get('notificationsCount');
-    pageSession.set('notificationsCount',null);
-    let notificationsCount = NotificationHistory.find({}).count();
-    if(notificationsCountOld<notificationsCount){
-      pageSession.set('notificationsCount',notificationsCount);
-      return true;
-    }else{
-      return false;
-    }
-  },
-  notificationsCount () {
-    return NotificationHistory.find({}).count()
   },
   city (){
     return Session.get('city');

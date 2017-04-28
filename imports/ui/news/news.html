@@ -10,7 +10,7 @@
   {{/contentFor}}
 
   {{#contentFor "headerButtonRight"}}
-  <button class="button button-clear" data-ion-modal="_qrcode">{{> ionIcon icon="ios-barcode"}}</button>
+  <button class="button button-clear" data-ion-modal="_qrcode"><i class="icon fa fa-qrcode"></i></button>
   {{/contentFor}}
 
   {{#if dataReadyScopeDetail}}
@@ -165,6 +165,11 @@
       {{/if}}
       <h2 class="homestead">{{name}}</h2>
       {{#if creatorProfile}}<p>{{_ "creator"}} : {{creatorProfile.name}}</p>{{/if}}
+      {{#if isVisibleFields 'birthDate'}}
+      {{#if birthDate}}
+      <p><i class="icon fa fa-birthday-cake"></i> {{formatBirthDate}} ({{diffInText birthDate}})</p>
+      {{/if}}
+      {{/if}}
       {{#if isAdmin}}
       <a href="{{pathFor scopeEdit _id=_id._str}}" class="button button-positive">{{> ionIcon icon="edit"}}</a>
       {{/if}}
@@ -201,10 +206,91 @@
 
     <div class="item item-text-wrap">
       {{#if shortDescription}}<p>{{{shortDescription}}}</p>{{/if}}
-      <p>{{address.postalCode}} {{address.addressLocality}}</p>
-    </div>
+
+        {{#if isVisibleFields 'locality'}}
+        <p>
+        {{#if address}}
+        {{#if address.streetAddress}}
+        {{address.streetAddress}}<br>
+        {{/if}}
+        {{address.postalCode}} {{address.addressLocality}}
+        {{/if}}
+        </p>
+        {{/if}}
+        </div>
+      {{#if socialNetwork}}
+      <div class="button-bar bar-positive">
+      {{#if socialNetwork.twitter}}
+      <a href="{{socialNetwork.twitter}}" class="button button-small"><i class="icon fa fa-twitter"></i></a>
+      {{/if}}
+      {{#if socialNetwork.github}}
+      <a href="{{socialNetwork.github}}" class="button button-small"><i class="icon fa fa-github"></i></a>
+      {{/if}}
+      {{#if socialNetwork.telegram}}
+
+      {{/if}}
+      {{#if socialNetwork.facebook}}
+      <a href="{{socialNetwork.facebook}}" class="button button-small"><i class="icon fa fa-facebook"></i></a>
+      {{/if}}
+      {{#if socialNetwork.googleplus}}
+      <a href="{{socialNetwork.googleplus}}" class="button button-small"><i class="icon fa fa-google-plus"></i></a>
+      {{/if}}
+      {{#if socialNetwork.skype}}
+      <a href="{{socialNetwork.skype}}" class="button button-small"><i class="icon fa fa-skype"></i></a>
+      {{/if}}
+      </div>
+      {{/if}}
+      <div class="list">
+      {{#if isVisibleFields 'email'}}
+      {{#if email}}
+      <a href="mailto:{{email}}" class="item item-icon-left"><i class="icon fa fa-envelope"></i> {{email}}</a>
+      {{/if}}
+      {{/if}}
+      {{#if url}}
+      <a href="{{url}}"  class="item item-icon-left"><i class="icon fa fa-link"></i> {{url}}</a>
+      {{/if}}
+      {{#if isVisibleFields 'phone'}}
+      {{#if telephone}}
+
+      {{#if telephone.fixe}}
+      {{#each telephone.fixe}}
+      <a href="tel:{{this}}" class="item item-icon-left">
+      <i class="icon fa fa-phone"></i> {{this}}
+      </a>
+      {{/each}}
+      {{/if}}
+      {{#if telephone.mobile}}
+      {{#each telephone.mobile}}
+      <a href="tel:{{this}}" class="item item-icon-left">
+      <i class="icon fa fa-mobile"></i> {{this}}
+      </a>
+      {{/each}}
+      {{/if}}
+      {{#if telephone.fax}}
+      {{#each telephone.fax}}
+      <a href="tel:{{this}}" class="item item-icon-left">
+      <i class="icon fa fa-fax"></i> {{this}}
+      </a>
+      {{/each}}
+      {{/if}}
+      {{/if}}
+      {{/if}}
+      </div>
+
+      {{#if tags}}
+      <div class="item item-text-wrap">
+      <p>
+      {{#each tags}}
+      <a href="" class="positive"><i class="icon fa fa-tag"></i> {{this}}</a>
+      {{/each}}
+      </p>
+      </div>
+      {{/if}}
+
     <div class="item tabs tabs-secondary tabs-icon-left">
+      {{#if isVisibleFields 'locality'}}
       {{#if geo}}<a class="tab-item" href="{{pathFor 'mapWith' _id=_id._str scope=scopeVar}}"><i class="icon ion-ios-location"></i> {{_ "distance"}} : {{distance geo}} </a>{{/if}}
+      {{/if}}
       {{#if issousEvents}}<a class="tab-item" href="{{pathFor 'listeventSous' _id=_id._str}}"><i class="icon ion-calendar"></i> {{countsousEvents}} {{_ "events"}} </a>{{/if}}
     </div>
   </div>
@@ -239,7 +325,7 @@
       {{#if isMembers}}
       <button class="button button-small photo-link-new">{{> ionIcon icon="camera"}}</button>
       <a href="{{pathFor 'newsAdd' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small">{{> ionIcon icon="compose"}}</a>
-      <a href="{{pathFor 'listMembers' _id=_id._str}}" class="button button-small">{{> ionIcon icon="ios-people"}}</a>
+      <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
       {{#if isAdmin}}
 
       {{else}}
@@ -247,6 +333,7 @@
       {{/if}}
       {{else}}
       <button class="button button-small connectscope-link">{{> ionIcon icon="person-add"}} {{_ "Become a member"}}</button>
+      <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
       {{#if isCordova}}
       <button class="button button-small scanner-event">{{> ionIcon icon="ios-barcode"}} {{_ "QR Scanner"}}</button>
       {{/if}}
@@ -261,7 +348,7 @@
       {{#if isContributors}}
       <button class="button button-small photo-link-new">{{> ionIcon icon="camera"}}</button>
       <a href="{{pathFor 'newsAdd' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small">{{> ionIcon icon="compose"}}</a>
-      <a href="{{pathFor 'listContributors' _id=_id._str}}" class="button button-small">{{> ionIcon icon="ios-people"}}</a>
+      <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
       {{#if isAdmin}}
 
       {{else}}
@@ -269,6 +356,7 @@
       {{/if}}
       {{else}}
       <button class="button button-small connectscope-link"><i class="icon fa fa-link"></i> {{_ "Become a contributor"}}</button>
+      <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
       {{#if isCordova}}
       <button class="button button-small scanner-event">{{> ionIcon icon="ios-barcode"}} {{_ "QR Scanner"}}</button>
       {{/if}}
@@ -284,12 +372,15 @@
       {{#if isMe}}
       <button class="button button-small photo-link-new">{{> ionIcon icon="camera"}}</button>
       <a href="{{pathFor 'newsAdd' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small">{{> ionIcon icon="compose"}}</a>
-      <a href="{{pathFor 'listFollows' _id=_id._str}}" class="button button-small">{{> ionIcon icon="ios-people"}}</a>
+      <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
       {{else}}
       {{#if isFollowersMe}}
       <button class="button button-small unfollowperson-link"><i class="icon fa fa-unlink"></i> {{_ "Unfollow this person"}}</button>
       {{else}}
       <button class="button button-small followperson-link"><i class="icon fa fa-link"></i> {{_ "Follow this person"}}</button>
+      {{/if}}
+      {{#if isVisibleFields 'directory'}}
+      <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
       {{/if}}
       {{#if isCordova}}
       <button class="button button-small scanner-event">{{> ionIcon icon="ios-barcode"}} {{_ "QR Scanner"}}</button>

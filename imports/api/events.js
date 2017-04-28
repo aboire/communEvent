@@ -49,8 +49,38 @@ export const SchemasEventsRest = new SimpleSchema([baseSchema,geoSchema, {
   //collection
   import { News } from './news.js'
   import { Citoyens } from './citoyens.js';
+  import { Documents } from './documents.js';
+  import { queryLink,queryLinkType,arrayLinkType,queryOptions } from './helpers.js';
 
   Events.helpers({
+    isVisibleFields (field){
+      /*if(this.isMe()){
+        return true;
+      }else{
+        if(this.isPublicFields(field)){
+          return true;
+        }else{
+          if(this.isFollowersMe() && this.isPrivateFields(field)){
+            return true;
+          }else{
+            return false;
+          }
+        }
+      }*/
+      return true;
+    },
+    isPublicFields (field){
+       return this.preferences && this.preferences.publicFields && _.contains(this.preferences.publicFields, field);
+    },
+    isPrivateFields (field){
+      return this.preferences && this.preferences.privateFields && _.contains(this.preferences.privateFields, field);
+    },
+    documents (){
+    return Documents.find({
+      id : this._id._str,
+      contentKey : "profil"
+    },{sort: {"created": -1},limit: 1 });
+    },
     creatorProfile () {
       return Citoyens.findOne({_id:new Mongo.ObjectID(this.creator)});
     },
@@ -72,12 +102,10 @@ export const SchemasEventsRest = new SimpleSchema([baseSchema,geoSchema, {
     isAttendees (){
           return this.links && this.links.attendees && this.links.attendees[Meteor.userId()];
     },
-    listAttendees (){
+    listAttendees (search){
       if(this.links && this.links.attendees){
-        let attendees = _.map(this.links.attendees, function(attendees,key){
-           return new Mongo.ObjectID(key);
-         });
-          return Citoyens.find({_id:{$in:attendees}},{sort: {"name": 1} });
+        const query = queryLink(this.links.attendees,search);
+          return Citoyens.find(query,queryOptions);
       } else{
         return false;
       }

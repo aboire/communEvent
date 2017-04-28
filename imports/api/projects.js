@@ -30,8 +30,39 @@ export const SchemasProjectsRest = new SimpleSchema([baseSchema,geoSchema,{
   //collection
   import { News } from './news.js'
   import { Citoyens } from './citoyens.js';
+  import { Documents } from './documents.js';
+  import { Events } from './events.js';
+  import { queryLink,queryLinkType,arrayLinkType,queryOptions } from './helpers.js';
 
   Projects.helpers({
+    isVisibleFields (field){
+      /*if(this.isMe()){
+        return true;
+      }else{
+        if(this.isPublicFields(field)){
+          return true;
+        }else{
+          if(this.isFollowersMe() && this.isPrivateFields(field)){
+            return true;
+          }else{
+            return false;
+          }
+        }
+      }*/
+      return true;
+    },
+    isPublicFields (field){
+       return this.preferences && this.preferences.publicFields && _.contains(this.preferences.publicFields, field);
+    },
+    isPrivateFields (field){
+      return this.preferences && this.preferences.privateFields && _.contains(this.preferences.privateFields, field);
+    },
+    documents (){
+    return Documents.find({
+      id : this._id._str,
+      contentKey : "profil"
+    },{sort: {"created": -1},limit: 1 });
+    },
     creatorProfile () {
       return Citoyens.findOne({_id:new Mongo.ObjectID(this.creator)});
     },
@@ -50,15 +81,47 @@ export const SchemasProjectsRest = new SimpleSchema([baseSchema,geoSchema,{
     listScope () {
       return 'listProjects';
     },
+    isFollows (followId){
+      return this.links && this.links.follows && this.links.follows[followId];
+    },
+    isFollowsMe (){
+      return this.links && this.links.follows && this.links.follows[Meteor.userId()];
+    },
+    listFollows (search){
+      if(this.links && this.links.follows){
+        const query = queryLink(this.links.follows,search);
+          return Citoyens.find(query,queryOptions);
+      } else{
+        return false;
+      }
+    },
+    countFollows () {
+      return this.links && this.links.follows && _.size(this.links.follows);
+    },
+    isFollowers (followId){
+      return this.links && this.links.followers && this.links.followers[followId];
+    },
+    isFollowersMe (){
+      return this.links && this.links.followers && this.links.followers[Meteor.userId()];
+    },
+    listFollowers (search){
+      if(this.links && this.links.followers){
+        const query = queryLink(this.links.followers,search);
+          return Citoyens.find(query,queryOptions);
+      } else{
+        return false;
+      }
+    },
+    countFollowers () {
+      return this.links && this.links.followers && _.size(this.links.followers);
+    },
     isContributors (){
           return this.links && this.links.contributors && this.links.contributors[Meteor.userId()];
     },
-    listContributors (){
+    listContributors (search){
       if(this.links && this.links.contributors){
-        let contributors = _.map(this.links.contributors, function(contributors,key){
-           return new Mongo.ObjectID(key);
-         });
-          return Citoyens.find({_id:{$in:contributors}},{sort: {"name": 1} });
+        const query = queryLink(this.links.contributors,search);
+          return Citoyens.find(query,queryOptions);
       } else{
         return false;
       }
@@ -70,6 +133,17 @@ export const SchemasProjectsRest = new SimpleSchema([baseSchema,geoSchema,{
     },
     countContributors () {
       return this.links && this.links.contributors && _.size(this.links.contributors);
+    },
+    listEvents (search){
+      if(this.links && this.links.events){
+        const query = queryLink(this.links.events,search);
+          return Events.find(query,queryOptions);
+      } else{
+        return false;
+      }
+    },
+    countEvents () {
+      return this.links && this.links.events && _.size(this.links.events);
     },
     countPopMap () {
       return this.links && this.links.contributors && _.size(this.links.contributors);

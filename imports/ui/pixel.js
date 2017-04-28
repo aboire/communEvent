@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Template } from 'meteor/templating';
 import { Router } from 'meteor/iron:router';
 
-import { NotificationHistory } from '../api/notification_history.js';
+import { ActivityStream } from '../api/activitystream.js';
 
 import './settings/settings.js';
 import './notifications/notifications.js';
@@ -99,7 +99,7 @@ Template.layout.events({
 
 Template.layout.helpers({
   notificationsCount () {
-    return NotificationHistory.find({}).count();
+    return ActivityStream.find({}).count();
   },
   allReadChecked (notificationsCount) {
     if(notificationsCount==0) return "checked";

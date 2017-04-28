@@ -16,7 +16,6 @@ import { Mapbox } from 'meteor/pauloborges:mapbox';
 //collections
 import { Citoyens } from '../../api/citoyens.js';
 import { Events } from '../../api/events.js';
-import { NotificationHistory } from '../../api/notification_history.js';
 import { Cities } from '../../api/cities.js';
 
 //submanager
@@ -27,7 +26,8 @@ import '../map/map.js';
 import './list.html';
 
 import { pageSession } from '../../api/client/reactive.js';
-
+import { position } from '../../api/client/position.js';
+import { searchQuery } from '../../api/helpers.js';
 
 Template.listEvents.onCreated(function () {
   const template = Template.instance();
@@ -40,13 +40,10 @@ Template.listEvents.onCreated(function () {
 
   //sub listEvents
   this.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    let radius = Session.get('radius');
-    console.log(radius);
-    if(radius && geo && geo.latitude){
-      console.log('sub list events geo radius');
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      const handle = listEventsSubs.subscribe('geo.scope','events',latlng,radius);
+    const radius = position.getRadius();
+    const latlngObj = position.getLatlngObject();
+    if (radius && latlngObj) {
+      const handle = listEventsSubs.subscribe('geo.scope','events',latlngObj,radius);
           template.ready.set(handle.ready());
     }else{
       console.log('sub list events city');
@@ -60,10 +57,9 @@ Template.listEvents.onCreated(function () {
   });
 
   this.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    if(geo && geo.latitude){
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      Meteor.call('getcitiesbylatlng',latlng,function(error, result){
+    const latlngObj = position.getLatlngObject();
+    if (latlngObj) {
+      Meteor.call('getcitiesbylatlng',latlngObj,function(error, result){
         if(result){
           //console.log('call city');
           Session.set('city', result);
@@ -121,12 +117,7 @@ Template.listEvents.helpers({
       query['endDate']={$lte : inputDate};
     }
     if(searchEvents){
-      if ( searchEvents.charAt( 0 ) == '#' ) {
-        query['name']={$regex : searchEvents, '$options' : 'i'}
-      }else{
-        query['name']={$regex : searchEvents, '$options' : 'i'}
-      }
-
+      query = searchQuery(query,searchEvents);
     }
     return Events.find(query);
   },
@@ -144,7 +135,7 @@ Template.listEvents.helpers({
       query['endDate']={$lte : inputDate};
     }
     if(searchEvents){
-      query['name']={$regex : searchEvents, '$options' : 'i'}
+      query = searchQuery(query,searchEvents);
     }
     return Events.find(query).count();
   },
@@ -155,7 +146,7 @@ Template.listEvents.helpers({
     query['startDate']={$lte : inputDate};
     query['endDate']={$gte : inputDate};
     if(searchEvents){
-      query['name']={$regex : searchEvents, '$options' : 'i'}
+      query = searchQuery(query,searchEvents);
     }
     return Events.find(query).count();
   },
@@ -165,7 +156,7 @@ Template.listEvents.helpers({
     let query={};
     query['startDate']={$gte : inputDate};
     if(searchEvents){
-      query['name']={$regex : searchEvents, '$options' : 'i'}
+      query = searchQuery(query,searchEvents);
     }
     return Events.find(query).count();
   },
@@ -175,7 +166,7 @@ Template.listEvents.helpers({
     let query={};
     query['endDate']={$lte : inputDate};
     if(searchEvents){
-      query['name']={$regex : searchEvents, '$options' : 'i'}
+      query = searchQuery(query,searchEvents);
     }
     return Events.find(query).count();
   },
@@ -184,20 +175,6 @@ Template.listEvents.helpers({
   },
   searchEvents (){
     return pageSession.get('searchEvents');
-  },
-  notificationsCountOld (){
-    let notificationsCountOld = pageSession.get('notificationsCount');
-    pageSession.set('notificationsCount',null);
-    let notificationsCount = NotificationHistory.find({}).count();
-    if(notificationsCountOld<notificationsCount){
-      pageSession.set('notificationsCount',notificationsCount);
-      return true;
-    }else{
-      return false;
-    }
-  },
-  notificationsCount () {
-    return NotificationHistory.find({}).count()
   },
   city (){
     return Session.get('city');

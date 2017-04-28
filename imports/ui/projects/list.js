@@ -27,7 +27,8 @@ import '../map/map.js';
 import './list.html';
 
 import { pageSession } from '../../api/client/reactive.js';
-
+import { position } from '../../api/client/position.js';
+import { searchQuery } from '../../api/helpers.js';
 
 Template.listProjects.onCreated(function () {
   var self = this;
@@ -40,13 +41,11 @@ Template.listProjects.onCreated(function () {
 
   //sub listProjects
   self.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    let radius = Session.get('radius');
-    console.log(radius);
-    if(radius && geo && geo.latitude){
+    const radius = position.getRadius();
+    const latlngObj = position.getLatlngObject();
+    if (radius && latlngObj) {
       console.log('sub list projects geo radius');
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      let handle = listProjectsSubs.subscribe('geo.scope','projects',latlng,radius);
+      let handle = listProjectsSubs.subscribe('geo.scope','projects',latlngObj,radius);
           self.ready.set(handle.ready());
     }else{
       console.log('sub list projects city');
@@ -60,10 +59,9 @@ Template.listProjects.onCreated(function () {
   });
 
   self.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    if(geo && geo.latitude){
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      Meteor.call('getcitiesbylatlng',latlng,function(error, result){
+    const latlngObj = position.getLatlngObject();
+    if (latlngObj) {
+      Meteor.call('getcitiesbylatlng',latlngObj,function(error, result){
         if(result){
           //console.log('call city');
           Session.set('city', result);
@@ -92,6 +90,7 @@ Template.listProjects.onRendered(function() {
           listEventsSubs.clear();
           listOrganizationsSubs.clear();
           listProjectsSubs.clear();
+          listCitoyensSubs.clear();
           dashboardSubs.clear();
         }
       },
@@ -112,12 +111,7 @@ Template.listProjects.helpers({
     let searchProjects= pageSession.get('searchProjects');
     let query={};
     if(searchProjects){
-      if ( searchProjects.charAt( 0 ) == '#' ) {
-        query['name']={$regex : searchProjects, '$options' : 'i'}
-      }else{
-        query['name']={$regex : searchProjects, '$options' : 'i'}
-      }
-
+      query = searchQuery(query,searchProjects);
     }
     return Projects.find(query);
   },
@@ -126,26 +120,12 @@ Template.listProjects.helpers({
     let searchProjects= pageSession.get('searchProjects');
     let query={};
     if(searchProjects){
-      query['name']={$regex : searchProjects, '$options' : 'i'}
+      query = searchQuery(query,searchProjects);
     }
     return Projects.find(query).count();
   },
   searchProjects (){
     return pageSession.get('searchProjects');
-  },
-  notificationsCountOld (){
-    let notificationsCountOld = pageSession.get('notificationsCount');
-    pageSession.set('notificationsCount',null);
-    let notificationsCount = NotificationHistory.find({}).count();
-    if(notificationsCountOld<notificationsCount){
-      pageSession.set('notificationsCount',notificationsCount);
-      return true;
-    }else{
-      return false;
-    }
-  },
-  notificationsCount () {
-    return NotificationHistory.find({}).count()
   },
   city (){
     return Session.get('city');

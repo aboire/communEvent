@@ -14,11 +14,13 @@ import { Mapbox } from 'meteor/pauloborges:mapbox';
 
 //collections
 import { Citoyens } from '../../api/citoyens.js';
-import { NotificationHistory } from '../../api/notification_history.js';
+import { ActivityStream } from '../../api/activitystream.js';
 import { Cities } from '../../api/cities.js';
 
 //submanager
 import { dashboardSubs,listEventsSubs,listOrganizationsSubs,listProjectsSubs } from '../../api/client/subsmanager.js';
+
+import { position } from '../../api/client/position.js';
 
 import './dashboard.html';
 
@@ -30,13 +32,11 @@ Template.dashboard.onCreated(function () {
   Meteor.subscribe('citoyen');
 
   self.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    let radius = Session.get('radius');
-    console.log(radius);
-    if(radius && geo && geo.latitude){
+    const radius = position.getRadius();
+    const latlngObj = position.getLatlngObject();
+    if (radius && latlngObj) {
       console.log('sub list dashboard geo radius');
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      let handle = dashboardSubs.subscribe('geo.dashboard',latlng,radius);
+      let handle = dashboardSubs.subscribe('geo.dashboard',latlngObj, radius);
           self.ready.set(handle.ready());
     }else{
       console.log('sub list dashboard city');
@@ -50,10 +50,9 @@ Template.dashboard.onCreated(function () {
   });
 
   self.autorun(function(c) {
-    let geo = Location.getReactivePosition();
-    if(geo && geo.latitude){
-      let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-      Meteor.call('getcitiesbylatlng',latlng,function(error, result){
+    const latlngObj = position.getLatlngObject();
+    if(latlngObj){
+      Meteor.call('getcitiesbylatlng',latlngObj,function(error, result){
         if(result){
           //console.log('call city');
           Session.set('city', result);
@@ -96,9 +95,6 @@ Meteor.setTimeout(testgeo, '3000');
 });
 
 Template.dashboard.helpers({
-  notificationsCount () {
-    return NotificationHistory.find({}).count()
-  },
   city (){
     return Session.get('city');
   },

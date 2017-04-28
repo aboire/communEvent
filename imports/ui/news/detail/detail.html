@@ -34,7 +34,14 @@
     {{/if}}
     {{#if text}}
     <div class="item item-body">
-      {{text}}
+      {{{autolinker text}}}
+      {{#if tags}}
+      <p>
+      {{#each tags}}
+      <a href="" class="positive"><i class="icon ion-pound"></i> {{this}}</a>
+      {{/each}}
+    </p>
+      {{/if}}
     </div>
     {{/if}}
     <div class="item tabs tabs-secondary tabs-icon-left">
