@@ -77,7 +77,8 @@
   {{/if}}
 </template>
 
-<template name="citoyensAdd">
+
+<template name="citoyensBlockEdit">
   {{#contentFor "headerButtonLeft"}}
   {{>ionNavBackButton}}
   {{/contentFor}}
@@ -95,7 +96,7 @@
   {{#ionContent}}
   <div class="list">
     <div class="item item-divider">
-      {{_ "Create a citoyen"}}
+      {{_ "Edit a citoyen"}}
     </div>
     {{#if error}}
     <div class="card">
@@ -104,14 +105,21 @@
       </div>
     </div>
     {{/if}}
-    {{#autoForm id="addCitoyen" schema=SchemasCitoyensRest type="method" meteormethod="insertCitoyen" template="ionic" class="padding"}}
-    {{> citoyensFields}}
+
+    {{#if equals block 'preferences'}}
+    {{#autoForm id="editBlockCitoyen" schema=blockSchema type="method-update" meteormethod="updateBlock" doc=citoyen autosave=true template="ionic" class="padding"}}
+    {{> citoyensFields block=block}}
+    {{/autoForm}}
+    {{else}}
+    {{#autoForm id="editBlockCitoyen" schema=blockSchema type="method-update" meteormethod="updateBlock" doc=citoyen template="ionic" class="padding"}}
+    {{> citoyensFields block=block}}
     <div class="item">
       <div class="button-bar">
-        <button type="submit" class="button button-dark">{{_ "create"}}</button>
+        <button type="submit" class="button button-dark">{{_ "edit"}}</button>
       </div>
     </div>
     {{/autoForm}}
+    {{/if}}
   </div>
   {{/ionContent}}
   {{/ionView}}
@@ -119,7 +127,6 @@
   {{> loading}}
   {{/if}}
 </template>
-
 
 <template name="citoyensEdit">
   {{#contentFor "headerButtonLeft"}}
@@ -164,16 +171,52 @@
   {{/if}}
 </template>
 
+
 <template name="citoyensFields">
+  {{#if equals block 'info'}}
   {{> afQuickField name='name'}}
-  {{> afQuickField name='shortDescription' rows=8}}
-  {{#if update}}
-  {{> afQuickField name='description' rows=8}}
+  {{> afQuickField name='username'}}
+  {{> afQuickField name='tags'}}
+  {{> afQuickField name='telegramAccount'}}
+  {{> afQuickField name='skypeAccount'}}
+  {{> afQuickField name='githubAccount'}}
+  {{> afQuickField name='gpplusAccount'}}
+  {{> afQuickField name='twitterAccount'}}
+  {{> afQuickField name='facebookAccount'}}
   {{/if}}
-  {{> afQuickField name='type'}}
-  {{> afQuickField name='role'}}
+
+  {{#if equals block 'contact'}}
   {{> afQuickField name='email'}}
   {{> afQuickField name='url'}}
+  {{> afQuickField name='fixe'}}
+  {{> afQuickField name='mobile'}}
+  {{> afQuickField name='fax'}}
+  {{> afQuickField name='birthDate'}}
+  {{/if}}
+
+  {{#if equals block 'description'}}
+  {{> afQuickField name='shortDescription' rows=8}}
+  {{> afQuickField name='description' rows=8}}
+  {{/if}}
+
+  {{#if equals block 'preferences'}}
+  <div class="list card">
+  <div class="item item-body">
+<strong>{{_ "Public"}}</strong> : {{_ "Visible pour tout le monde"}}<br>
+<strong>{{_ "Privé"}}</strong>  : {{_ "Visible pour mes contacts seulement"}}<br>
+<strong>{{_ "Masqué"}}</strong>  : {{_ "Visible pour personne"}}<br>
+<strong>{{_ "Open Data"}}</strong>  : {{_ "Vous proposez vos données en accès libre, afin de contribuer au bien commun"}}
+  </div>
+</div>
+  {{> afQuickField type="select-radio" name='preferences.email'}}
+  {{> afQuickField type="select-radio" name='preferences.locality'}}
+  {{> afQuickField type="select-radio" name='preferences.phone'}}
+  {{> afQuickField type="select-radio" name='preferences.directory'}}
+  {{> afQuickField type="select-radio" name='preferences.birthDate'}}
+  {{> afQuickField name='preferences.isOpenData'}}
+  {{/if}}
+
+  {{#if equals block 'locality'}}
   {{> afQuickField name='country' autocomplete="off" value=country }}
   {{#if currentFieldValue "country"}}
   {{> afQuickField name='postalCode' value=postalCode autocomplete="off"}}
@@ -193,8 +236,7 @@
   {{> afQuickField name='geoPosLongitude' type="hidden" value=longitude}}
   {{> afQuickField name='regionName' type="hidden" value=regionName}}
   {{> afQuickField name='depName' type="hidden" value=depName}}
-  {{#if update}}
-  {{> afQuickField name='preferences'}}
   {{/if}}
   {{/if}}
+
 </template>

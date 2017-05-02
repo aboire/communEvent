@@ -8,59 +8,144 @@ import { moment } from 'meteor/momentjs:moment';
 export const Citoyens = new Meteor.Collection("citoyens", {idGeneration : 'MONGO'});
 
 //schemas
-import { PostalAddress,GeoCoordinates,GeoPosition,linksCitoyens } from './schema.js'
+import { baseSchema,blockBaseSchema,geoSchema,PostalAddress,GeoCoordinates,GeoPosition,linksCitoyens,preferences_SELECT } from './schema.js'
 
-//Social
-const socialNetwork = new SimpleSchema({
-  facebook: {
-    type : String,
-    optional: true
-  },
-  twitter: {
-    type : String,
-    optional: true
-  },
-  github: {
-    type : String,
-    optional: true
-  },
-  skype: {
-    type : String,
-    optional: true
-  }
+const baseSchemaCitoyens = baseSchema.pick(['name','shortDescription','description','url','tags','tags.$']);
+
+const updateSchemaCitoyens = new SimpleSchema({
+username : {
+  type : String,
+  custom: function () {
+      if (Meteor.isClient && this.isSet) {
+        Meteor.call('checkUsername', this.value, function (error, result) {
+          console.log(result);
+          if (!result) {
+            updateSchemaCitoyens.namedContext("editBlockCitoyen").addInvalidKeys([{name: "username", type: "notUnique"}]);
+          }
+        });
+      }
+    }
+},
+email : {
+  type : String,
+  unique: true
+},
+fixe : {
+  type : String,
+  optional: true
+},
+mobile : {
+  type : String,
+  optional: true
+},
+fax : {
+  type : String,
+  optional: true
+},
+birthDate : {
+  type : Date,
+  optional: true
+},
+githubAccount : {
+  type : String,
+  regEx: SimpleSchema.RegEx.Url,
+  optional: true
+},
+telegramAccount : {
+  type : String,
+  optional: true
+},
+skypeAccount : {
+  type : String,
+  regEx: SimpleSchema.RegEx.Url,
+  optional: true
+},
+gpplusAccount : {
+  type : String,
+  regEx: SimpleSchema.RegEx.Url,
+  optional: true
+},
+twitterAccount : {
+  type : String,
+  regEx: SimpleSchema.RegEx.Url,
+  optional: true
+},
+facebookAccount : {
+  type : String,
+  regEx: SimpleSchema.RegEx.Url,
+  optional: true
+}
 });
 
-//Preferences
-const preferencesCitoyen = new SimpleSchema({
-  bgClass: {
-    type : String,
-    optional: true
-  },
-  bgUrl: {
-    type : String,
-    optional: true
-  }
-});
 
-//Roles
-const rolesCitoyen = new SimpleSchema({
-  tobeactivated: {
-    type : Boolean,
-    defaultValue:true
+export const SchemasCitoyensRest = new SimpleSchema([baseSchemaCitoyens,updateSchemaCitoyens,geoSchema,{
+  preferences : {
+    type: Object,
+    optional:true
   },
-  betaTester: {
-    type : Boolean,
-    defaultValue:false
-  },
-  standalonePageAccess: {
-    type : Boolean,
-    defaultValue: true
-  },
-  superAdmin: {
-    type : Boolean,
-    defaultValue: false
+  'preferences.isOpenData' : {
+    type : Boolean
   }
-});
+}]);
+
+
+
+
+
+export const BlockCitoyensRest = {};
+BlockCitoyensRest.description = new SimpleSchema([blockBaseSchema,baseSchema.pick(['shortDescription','description'])]);
+BlockCitoyensRest.info = new SimpleSchema([blockBaseSchema,baseSchema.pick(['name','tags','tags.$']),updateSchemaCitoyens.pick(['githubAccount','telegramAccount','skypeAccount','gpplusAccount','twitterAccount','facebookAccount']),{
+  username : {
+    type : String,
+    custom: function () {
+        if (Meteor.isClient && this.isSet) {
+          Meteor.call('checkUsername', this.value, function (error, result) {
+            console.log(result);
+            if (!result) {
+              BlockCitoyensRest.info.namedContext("editBlockCitoyen").addInvalidKeys([{name: "username", type: "usernameNotUnique"}]);
+            }
+          });
+        }
+      }
+  }
+}]);
+BlockCitoyensRest.contact = new SimpleSchema([blockBaseSchema,baseSchema.pick(['url']),updateSchemaCitoyens.pick(['email','fixe','mobile','fax','birthDate'])]);
+BlockCitoyensRest.locality = new SimpleSchema([blockBaseSchema,geoSchema]);
+BlockCitoyensRest.preferences = new SimpleSchema([blockBaseSchema,{
+  preferences : {
+    type: Object,
+    optional:true
+  },
+  'preferences.email' : {
+    type : String,
+    allowedValues: preferences_SELECT,
+    optional:true
+  },
+  'preferences.locality' : {
+    type : String,
+    allowedValues: preferences_SELECT,
+    optional:true
+  },
+  'preferences.phone' : {
+    type : String,
+    allowedValues: preferences_SELECT,
+    optional:true
+  },
+  'preferences.directory' : {
+    type : String,
+    allowedValues: preferences_SELECT,
+    optional:true
+  },
+  'preferences.birthDate' : {
+    type : String,
+    allowedValues: preferences_SELECT,
+    optional:true
+  },
+  'preferences.isOpenData' : {
+    type : Boolean,
+    optional:true
+  }
+}]);
 
 //type : person / follow
 //invitedUserName
@@ -87,89 +172,6 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
     type: String
   },
 });
-
-
-Citoyens.attachSchema(
-  new SimpleSchema({
-    name : {
-      type : String
-    },
-    username : {
-      type : String
-      //unique: true
-    },
-    email : {
-      type : String,
-      regEx: SimpleSchema.RegEx.Email,
-      unique: true
-    },
-    pwd : {
-      type : String
-    },
-    birthDate: {
-      type: Date,
-      optional: true
-    },
-    address : {
-      type : PostalAddress
-    },
-    geo : {
-      type : GeoCoordinates
-    },
-    geoPosition : {
-      type : GeoPosition
-    },
-    socialNetwork : {
-      type : socialNetwork,
-      optional: true
-    },
-    shortDescription : {
-      type : String,
-      optional: true
-    },
-    telephone: {
-      type : String,
-      optional: true
-    },
-    preferences : {
-      type : preferencesCitoyen,
-      optional: true
-    },
-    roles : {
-      type : rolesCitoyen
-    },
-    links : {
-      type : linksCitoyens,
-      optional:true
-    },
-    profilImageUrl : {
-      type : String,
-      optional:true
-    },
-    profilThumbImageUrl : {
-      type : String,
-      optional:true
-    },
-    profilMarkerImageUrl : {
-      type : String,
-      optional:true
-    },
-    created: {
-      type: Date,
-      autoValue: function() {
-        if (this.isInsert) {
-          return new Date();
-        } else if (this.isUpsert) {
-          return {
-            $setOnInsert: new Date()
-          };
-        } else {
-          this.unset();
-        }
-      },
-      denyUpdate: true
-    }
-  }));
 
   //if(Meteor.isClient){
   import { News } from './news.js';
@@ -227,8 +229,9 @@ Citoyens.attachSchema(
           return false;
         }
       },
-      countFollows () {
-        return this.links && this.links.follows && _.size(this.links.follows);
+      countFollows (search) {
+        //return this.links && this.links.follows && _.size(this.links.follows);
+        return this.listFollows(search).count();
       },
       isFollowers (followId){
         return this.links && this.links.followers && this.links.followers[followId];
@@ -244,19 +247,20 @@ Citoyens.attachSchema(
           return false;
         }
       },
-      countFollowers () {
-        return this.links && this.links.followers && _.size(this.links.followers);
+      countFollowers (search) {
+        //return this.links && this.links.followers && _.size(this.links.followers);
+        return this.listFollowers(search).count();
       },
-      listMemberOf (search){
+      listMemberOf (search,selectorga){
         if(this.links && this.links.memberOf){
-            const query = queryLink(this.links.memberOf,search);
+            const query = queryLink(this.links.memberOf,search,selectorga);
             return Organizations.find(query,queryOptions);
         } else{
           return false;
         }
       },
-      countMemberOf () {
-        return this.links && this.links.memberOf && _.size(this.links.memberOf);
+      countMemberOf (search,selectorga) {
+        return this.listMemberOf(search,selectorga).count();
       },
       listEvents (search){
         if(this.links && this.links.events){
@@ -266,8 +270,9 @@ Citoyens.attachSchema(
           return false;
         }
       },
-      countEvents () {
-        return this.links && this.links.events && _.size(this.links.events);
+      countEvents (search) {
+        //return this.links && this.links.events && _.size(this.links.events);
+        return this.listEvents(search).count();
       },
       listProjects (search){
         if(this.links && this.links.projects){
@@ -277,8 +282,9 @@ Citoyens.attachSchema(
           return false;
         }
       },
-      countProjects () {
-        return this.links && this.links.projects && _.size(this.links.projects);
+      countProjects (search) {
+        //return this.links && this.links.projects && _.size(this.links.projects);
+        return this.listProjects(search).count();
       },
       scopeVar () {
         return 'citoyens';

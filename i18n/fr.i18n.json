@@ -99,6 +99,74 @@
   "favorites":"Favoris",
   "search":"Chercher",
   "searchPlaceholder":"Chercher par nom, #tag...",
+  "simpleschema": {
+    "messages": {
+      "usernameNotUnique": "[label] existe déja",
+      "required": "Veuillez saisir quelque chose",
+      "minString": "Veuillez saisir au moins [min] caractères",
+      "maxString": "Veuillez saisir moins de [max] caractères",
+      "minNumber": "Ce champ doit être superieur ou égal à [min]",
+      "maxNumber": "Ce champ doit être inferieur ou égal à [max]",
+      "minNumberExclusive": "Ce champ doit être superieur à [min]",
+      "maxNumberExclusive": "Ce champ doit être inferieur à [max]",
+      "minDate": "La date doit est posterieure au [min]",
+      "maxDate": "La date doit est anterieure au [max]",
+      "badDate": "Cette date est invalide",
+      "minCount": "Vous devez saisir plus de [minCount] valeurs",
+      "maxCount": "Vous devez saisir moins de [maxCount] valeurs",
+      "noDecimal": "Ce champ doit être un entier",
+      "notAllowed": "[value] n'est pas une valeur acceptée",
+      "expectedString": "Ce champ doit être une chaine de caractères",
+      "expectedNumber": "Ce champ doit être un nombre",
+      "expectedBoolean": "Ce champ doit être un booléen",
+      "expectedArray": "Ce champ doit être un tableau",
+      "expectedObject": "Ce champ doit être une objet",
+      "expectedConstructor": "Ce champ doit être du type [type]",
+      "keyNotInSchema": "Le champ [key] n'est pas permis par le schéma",
+      "notUnique": "[label] doit être unique",
+      "regEx": {
+        "0": {
+          "msg": "Ce champ a échoué la validation par Regex"
+        },
+        "1": {
+          "exp": "SimpleSchema.RegEx.Email",
+          "msg": "Cette adresse e-mail est incorrecte"
+        },
+        "2": {
+          "exp": "SimpleSchema.RegEx.WeakEmail",
+          "msg": "Cette adresse e-mail est incorrecte"
+        },
+        "3": {
+          "exp": "SimpleSchema.RegEx.Domain",
+          "msg": "Ce champ doit être un domaine valide"
+        },
+        "4": {
+          "exp": "SimpleSchema.RegEx.WeakDomain",
+          "msg": "Ce champ doit être un domaine valide"
+        },
+        "5": {
+          "exp": "SimpleSchema.RegEx.IP",
+          "msg": "Cette adresse IP est invalide"
+        },
+        "6": {
+          "exp": "SimpleSchema.RegEx.IPv4",
+          "msg": "Cette adresse IPv4 est invalide"
+        },
+        "7": {
+          "exp": "SimpleSchema.RegEx.IPv6",
+          "msg": "Cette adresse IPv6 est invalide"
+        },
+        "8": {
+          "exp": "SimpleSchema.RegEx.Url",
+          "msg": "Cette URL is invalide"
+        },
+        "9": {
+          "exp": "SimpleSchema.RegEx.Id",
+          "msg": "Cet identifiant alphanumérique est invalide"
+        }
+      }
+    }
+  },
   "schemas":{
     "followrest":{
       "invitedUserName":{
@@ -179,12 +247,6 @@
       },
       "description":{
         "label": "Description"
-      },
-      "url":{
-        "label": "Url"
-      },
-      "tags":{
-        "label": "Tags"
       },
       "type":{
         "label": "Type",
@@ -307,6 +369,178 @@
       "text":{
         "label": "message",
         "placeholder":"comment..."
+      }
+    },
+    "global":{
+      "name":{
+        "label": "Nom"
+      },
+      "username":{
+        "label": "Pseudo"
+      },
+      "shortDescription":{
+        "label": "Description courte"
+      },
+      "description":{
+        "label": "Description"
+      },
+      "email":{
+        "label": "Email"
+      },
+      "fixe":{
+        "label": "Téléphone fixe"
+      },
+      "mobile":{
+        "label": "Téléphone mobile"
+      },
+      "fax":{
+        "label": "Fax"
+      },
+      "url":{
+        "label": "Url"
+      },
+      "tags":{
+        "label": "Tags"
+      },
+      "birthDate" : {
+        "label": "Date d'anniversaire"
+      },
+      "allDay":{
+        "label": "Toute la journée"
+      },
+      "startDate":{
+        "label": "Date de début"
+      },
+      "endDate":{
+        "label": "Date de fin"
+      },
+      "type":{
+        "label": "Type",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+
+        }
+      },
+      "role":{
+        "label": "Role",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+          "admin":"Administrateur",
+          "member":"Membre",
+          "creator":"Juste un citoyen"
+        }
+      },
+      "avancement":{
+        "label": "Avancement",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+          "idea":"idée",
+          "concept":"concept",
+          "started":"démarrer",
+          "development":"développement",
+          "testing":"expérimentation",
+          "mature":"mature"
+        }
+      },
+      "githubAccount" : {
+        "label": "github",
+        "placeholder": "Lien github"
+      },
+      "telegramAccount" : {
+        "label": "telegram",
+        "placeholder": "Speudo telegram"
+      },
+      "skypeAccount" : {
+        "label": "skype",
+        "placeholder": "Lien skype"
+      },
+      "gpplusAccount" : {
+        "label": "google plus",
+        "placeholder": "Lien google plus"
+      },
+      "twitterAccount" : {
+        "label": "twitter",
+        "placeholder": "Lien twitter"
+      },
+      "facebookAccount" : {
+        "label": "facebook",
+        "placeholder": "Lien facebook"
+      },
+      "country":{
+        "label": "Pays",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+          "FR":"France",
+          "GP":"Guadeloupe",
+          "GF":"Guyanne Française",
+          "MQ":"Martinique",
+          "YT":"Mayotte",
+          "NC":"Nouvelle-Calédonie",
+          "RE":"Réunion",
+          "PM":"St Pierre et Miquelon"
+        }
+      },
+      "postalCode":{
+        "label": "Code postal"
+      },
+      "city":{
+        "label": "Ville",
+        "placeholder": "Sélectionnez un...",
+        "options": {
+
+        }
+      },
+      "streetAddress":{
+        "label": "Adresse"
+      },
+      "preferences":{
+        "label": "Préférences",
+        "isOpenData":{
+          "label": "Open Data"
+        },
+        "isOpenEdition":{
+          "label": "Open Edition"
+        },
+        "email":{
+          "label": "Mon e-mail",
+          "options": {
+            "public":"public",
+            "private":"privé",
+            "hide":"masqué"
+          }
+        },
+        "locality":{
+          "label": "Adresse",
+          "options": {
+            "public":"public",
+            "private":"privé",
+            "hide":"masqué"
+          }
+        },
+        "phone":{
+          "label": "Mon téléphone",
+          "options": {
+            "public":"public",
+            "private":"privé",
+            "hide":"masqué"
+          }
+        },
+        "directory":{
+          "label": "Mon répertoire",
+          "options": {
+            "public":"public",
+            "private":"privé",
+            "hide":"masqué"
+          }
+        },
+        "birthDate":{
+          "label": "Date de naissance",
+          "options": {
+            "public":"public",
+            "private":"privé",
+            "hide":"masqué"
+          }
+        }
       }
     }
   }

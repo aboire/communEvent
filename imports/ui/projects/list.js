@@ -15,7 +15,7 @@ import { Mapbox } from 'meteor/pauloborges:mapbox';
 
 //collections
 import { Citoyens } from '../../api/citoyens.js';
-import { Projects } from '../../api/projects.js';
+import { Projects,BlockProjectsRest } from '../../api/projects.js';
 import { NotificationHistory } from '../../api/notification_history.js';
 import { Cities } from '../../api/cities.js';
 
@@ -180,9 +180,34 @@ Template.projectsEdit.onCreated(function () {
   pageSession.set('geoPosLongitude', null);
 
   this.autorun(function(c) {
-      const handleList = listsSubs.subscribe('lists');
       const handle = Meteor.subscribe('scopeDetail','projects',Router.current().params._id);
-      if(handleList.ready() && handle.ready()){
+      if(handle.ready()){
+        template.ready.set(handle.ready());
+      }
+  });
+});
+
+Template.projectsBlockEdit.onCreated(function () {
+  const template = Template.instance();
+  template.ready = new ReactiveVar();
+  pageSession.set('error', false );
+  pageSession.set('postalCode', null);
+  pageSession.set('country', null);
+  pageSession.set('city', null);
+  pageSession.set('cityName', null);
+  pageSession.set('regionName', null);
+  pageSession.set('depName', null);
+  pageSession.set('geoPosLatitude', null);
+  pageSession.set('geoPosLongitude', null);
+
+  this.autorun(function(c) {
+      Session.set('scopeId', Router.current().params._id);
+      Session.set('block', Router.current().params.block);
+  });
+
+  this.autorun(function(c) {
+      const handle = Meteor.subscribe('scopeDetail','projects',Router.current().params._id);
+      if(handle.ready()){
         template.ready.set(handle.ready());
       }
   });
@@ -244,7 +269,87 @@ Template.projectsEdit.helpers({
   }
 });
 
-
+Template.projectsBlockEdit.helpers({
+  project () {
+    let project = Projects.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
+    let projectEdit = {};
+    projectEdit._id = project._id._str;
+    if(Router.current().params.block === 'description'){
+      projectEdit.description = project.description;
+      projectEdit.shortDescription = project.shortDescription;
+    }else if(Router.current().params.block === 'info'){
+      projectEdit.name = project.name;
+      if(project.tags){
+        projectEdit.tags = project.tags;
+      }
+      if(project.properties && project.properties.avancement){
+        projectEdit.avancement = project.properties.avancement;
+      }
+    }else if(Router.current().params.block === 'contact'){
+      projectEdit.email = project.email;
+      projectEdit.url = project.url;
+      if(project.telephone){
+        if(project.telephone.fixe){
+          projectEdit.fixe = project.telephone.fixe.join();
+        }
+        if(project.telephone.mobile){
+          projectEdit.mobile = project.telephone.mobile.join();
+        }
+        if(project.telephone.fax){
+          projectEdit.fax = project.telephone.fax.join();
+        }
+      }
+    }else if(Router.current().params.block === 'when'){
+      projectEdit.startDate = project.startDate;
+      projectEdit.endDate = project.endDate;
+    }else if(Router.current().params.block === 'locality'){
+      if(project && project.address){
+      projectEdit.country = project.address.addressCountry;
+      projectEdit.postalCode = project.address.postalCode;
+      projectEdit.city = project.address.codeInsee;
+      projectEdit.cityName = project.address.addressLocality;
+      if(project && project.address && project.address.streetAddress){
+        projectEdit.streetAddress = project.address.streetAddress;
+      }
+      if(project && project.address && project.address.regionName){
+        projectEdit.regionName = project.address.regionName;
+      }
+      if(project && project.address && project.address.depName){
+        projectEdit.depName = project.address.depName;
+      }
+      projectEdit.geoPosLatitude = project.geo.latitude;
+      projectEdit.geoPosLongitude = project.geo.longitude;
+    }
+  }else if(Router.current().params.block === 'preferences'){
+    if(project && project.preferences){
+      projectEdit.preferences = {};
+      if(project.preferences.isOpenData === true){
+        projectEdit.preferences.isOpenData = true;
+      }else{
+        projectEdit.preferences.isOpenData = false;
+      }
+      if(project.preferences.isOpenEdition === true){
+        projectEdit.preferences.isOpenEdition = true;
+      }else{
+        projectEdit.preferences.isOpenEdition = false;
+      }
+    }
+  }
+    return projectEdit;
+  },
+  blockSchema() {
+    return BlockProjectsRest[Router.current().params.block];
+  },
+  block() {
+    return Router.current().params.block;
+  },
+  error () {
+    return pageSession.get( 'error' );
+  },
+  dataReady() {
+  return Template.instance().ready.get();
+  }
+});
 
 Template.projectsFields.helpers({
   optionsInsee () {
@@ -307,7 +412,7 @@ Template.projectsFields.onRendered(function() {
   pageSession.set('geoPosLongitude', null);
 
   let geolocate = Session.get('geolocate');
-  if(geolocate && Router.current().route.getName()!="projectsEdit"){
+  if(geolocate && Router.current().route.getName()!="projectsEdit" && Router.current().route.getName()!="projectsBlockEdit"){
     var onOk=IonPopup.confirm({template:TAPi18n.__('Utiliser votre position actuelle ?'),
     onOk: function(){
       let geo = Location.getReactivePosition();
@@ -347,10 +452,11 @@ Template.projectsFields.onRendered(function() {
 
 
 Template.projectsFields.events({
-  'keyup input[name="postalCode"],change input[name="postalCode"]': function(e, tmpl) {
+  'keyup input[name="postalCode"],change input[name="postalCode"]':_.throttle((e, tmpl) => {
     e.preventDefault();
     pageSession.set( 'postalCode', tmpl.$(e.currentTarget).val() );
-  },
+  }, 500)
+  ,
   'change select[name="country"]': function(e, tmpl) {
     e.preventDefault();
     //console.log(tmpl.$(e.currentTarget).val());
@@ -369,8 +475,7 @@ Template.projectsFields.events({
     //console.log(insee.geo.latitude);
     //console.log(insee.geo.longitude);
   },
-  'change input[name="streetAddress"]': function(event,template){
-
+  'change input[name="streetAddress"]':_.throttle((event,template) => {
     function addToRequest(request, dataStr){
       if(dataStr == "") return request;
       if(request != "") dataStr = " " + dataStr;
@@ -420,7 +525,7 @@ Template.projectsFields.events({
       }
     );
   }
-}
+}, 500)
 });
 
 AutoForm.addHooks(['addProject', 'editProject'], {
@@ -458,6 +563,39 @@ AutoForm.addHooks(['addProject'], {
   before: {
     method : function(doc, template) {
       return doc;
+    }
+  }
+});
+
+AutoForm.addHooks(['editBlockProject'], {
+  after: {
+    "method-update" : function(error, result) {
+      if (!error) {
+        if(Session.get('block')!=='preferences'){
+        Router.go('newsList', {_id:Session.get('scopeId'),scope:'projects'});
+      }
+      }
+    }
+  },
+  before: {
+    "method-update" : function(modifier, documentId) {
+      let scope = 'projects';
+      let block = Session.get('block');
+      if(modifier && modifier["$set"]){
+
+      }else{
+        modifier["$set"] = {};
+      }
+      modifier["$set"].typeElement = scope;
+      modifier["$set"].block = block;
+      return modifier;
+    }
+  },
+  onError: function(formType, error) {
+    if (error.errorType && error.errorType === 'Meteor.Error') {
+      if (error && error.error === "error_call") {
+        pageSession.set( 'error', error.reason.replace(": ", ""));
+      }
     }
   }
 });

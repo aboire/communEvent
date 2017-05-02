@@ -74,3 +74,4 @@ omega:meteor-desktop-watcher@=0.6.2
 omega:meteor-desktop-bundler@=0.6.2
 omega:meteor-desktop-localstorage
 tap:i18n-bundler
+communecter:deep-link

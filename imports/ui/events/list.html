@@ -186,7 +186,117 @@
   {{/if}}
 </template>
 
+<template name="eventsBlockEdit">
+
+  {{#contentFor "headerButtonLeft"}}
+  {{>ionNavBackButton}}
+  {{/contentFor}}
+
+  {{#contentFor "headerButtonRight"}}
+
+  {{/contentFor}}
+
+  {{#contentFor "headerTitle"}}
+  <h1 class="title">{{_ "events"}}</h1>
+  {{/contentFor}}
+
+{{#if dataReady}}
+  {{#ionView}}
+  {{#ionContent}}
+  <div class="list">
+    <div class="item item-divider">
+      {{_ "Edit a event"}}
+    </div>
+    {{#if error}}
+    <div class="card">
+      <div class="item item-text-wrap animated shake homestead text-center">
+        {{_ error}}
+      </div>
+    </div>
+    {{/if}}
+    {{#if equals block 'preferences'}}
+    {{#autoForm id="editBlockEvent" schema=blockSchema type="method-update" meteormethod="updateBlock" doc=event autosave=true template="ionic" class="padding"}}
+    {{> eventsFields block=block}}
+    {{/autoForm}}
+    {{else}}
+    {{#autoForm id="editBlockEvent" schema=blockSchema type="method-update" meteormethod="updateBlock" doc=event template="ionic" class="padding"}}
+    {{> eventsFields block=block}}
+    <div class="item">
+      <div class="button-bar">
+        <button type="submit" class="button button-dark">{{_ "edit"}}</button>
+      </div>
+    </div>
+    {{/autoForm}}
+    {{/if}}
+  </div>
+  {{/ionContent}}
+  {{/ionView}}
+  {{else}}
+  {{> loading}}
+  {{/if}}
+</template>
+
 <template name="eventsFields">
+  {{#if equals block 'info'}}
+  {{> afQuickField name='name'}}
+  {{> afQuickField name='type'}}
+  {{> afQuickField name='tags'}}
+  {{/if}}
+
+  {{#if equals block 'contact'}}
+  {{> afQuickField name='email'}}
+  {{> afQuickField name='url'}}
+  {{> afQuickField name='fixe'}}
+  {{> afQuickField name='mobile'}}
+  {{> afQuickField name='fax'}}
+  {{/if}}
+
+  {{#if equals block 'description'}}
+  {{> afQuickField name='shortDescription' rows=8}}
+  {{> afQuickField name='description' rows=8}}
+  {{/if}}
+
+  {{#if equals block 'when'}}
+  {{> afQuickField name='allDay'}}
+  {{> afQuickField name='startDate' type="datetime-local"}}
+  {{> afQuickField name='endDate' type="datetime-local"}}
+  {{/if}}
+
+  {{#if equals block 'preferences'}}
+  <div class="list card">
+  <div class="item item-body">
+    <strong>{{_ "Open Data"}}</strong>  : {{_ "Vous proposez vos données en accès libre, afin de contribuer au bien commun"}}<br>
+    <strong>{{_ "Open Edition"}}</strong>  : {{_ "Tous les utilisateurs ont la possibilité de participer / modifier les informations"}}
+  </div>
+  </div>
+  {{> afQuickField name='preferences.isOpenData'}}
+  {{> afQuickField name='preferences.isOpenEdition'}}
+  {{/if}}
+
+  {{#if equals block 'locality'}}
+  {{> afQuickField name='country' autocomplete="off" value=country }}
+  {{#if currentFieldValue "country"}}
+  {{> afQuickField name='postalCode' value=postalCode autocomplete="off"}}
+  {{#if currentFieldValue "postalCode"}}
+  {{#if optionsInsee}}
+  {{> afQuickField name='city' options=optionsInsee value=city}}
+  {{> afQuickField name='cityName' type="hidden" value=cityName}}
+  {{else}}
+  <div class="item item-text-wrap assertive"><i class="icon ion-android-alert"></i> {{_ "Error not postal code match"}}</div>
+  {{/if}}
+  {{/if}}
+  {{> afQuickField name='streetAddress' autocomplete="off"}}
+  {{#if latlng}}
+  {{> map}}
+  {{/if}}
+  {{> afQuickField name='geoPosLatitude' type="hidden" value=latitude}}
+  {{> afQuickField name='geoPosLongitude' type="hidden" value=longitude}}
+  {{> afQuickField name='regionName' type="hidden" value=regionName}}
+  {{> afQuickField name='depName' type="hidden" value=depName}}
+  {{/if}}
+  {{/if}}
+
+  {{#unless block}}
   {{> afQuickField name='name'}}
   {{> afQuickField name='shortDescription' rows=8}}
   {{#if update}}
@@ -219,4 +329,5 @@
   {{> afQuickField name='preferences'}}
   {{/if}}
   {{/if}}
+  {{/unless}}
 </template>

@@ -9,6 +9,7 @@ import { AutoForm } from 'meteor/aldeed:autoform';
 import { TAPi18n } from 'meteor/tap:i18n';
 import { ReactiveDict } from 'meteor/reactive-dict';
 import { ReactiveVar } from 'meteor/reactive-var';
+import { _ } from 'meteor/underscore';
 
 //submanager
 import { directoryListSubs } from '../../api/client/subsmanager.js';
@@ -17,6 +18,7 @@ import { Events } from '../../api/events.js';
 import { Organizations } from '../../api/organizations.js';
 import { Projects } from '../../api/projects.js';
 import { Citoyens } from '../../api/citoyens.js';
+import { Lists } from '../../api/lists.js';
 
 import { nameToCollection } from '../../api/helpers.js';
 
@@ -72,6 +74,7 @@ Template.directory.helpers({
 Template.listDirectorycitoyens.onCreated(function(){
   pageDirectory.set('search', null);
   pageDirectory.set('view', 'all');
+  pageDirectory.set('selectorga', null);
 });
 
 
@@ -79,8 +82,8 @@ Template.listDirectorycitoyens.helpers({
   search (){
     return pageDirectory.get('search');
   },
-  view (view){
-    return pageDirectory.get('view') === view;
+  view (){
+    return pageDirectory.get('view');
   }
 });
 
@@ -114,6 +117,7 @@ Template.listDirectorycitoyens.events({
 Template.listDirectoryorganizations.onCreated(function(){
   pageDirectory.set('search', null);
   pageDirectory.set('view', 'all');
+  pageDirectory.set('selectorga', null);
 });
 
 
@@ -121,8 +125,8 @@ Template.listDirectoryorganizations.helpers({
   search (){
     return pageDirectory.get('search');
   },
-  view (view){
-    return pageDirectory.get('view') === view;
+  view (){
+    return pageDirectory.get('view');
   }
 });
 
@@ -163,8 +167,8 @@ Template.listDirectoryprojects.helpers({
   search (){
     return pageDirectory.get('search');
   },
-  view (view){
-    return pageDirectory.get('view') === view;
+  view (){
+    return pageDirectory.get('view');
   }
 });
 
@@ -196,6 +200,17 @@ Template.listDirectoryFollows.helpers({
 Template.listDirectoryMemberOf.helpers({
   search (){
     return pageDirectory.get('search');
+  },
+  selectorga (){
+    return pageDirectory.get('selectorga');
+  },
+  listOrganisationTypes (){
+      const listSelect = Lists.findOne({name:'organisationTypes'});
+      if(listSelect && listSelect.list){
+      return _.map(listSelect.list, (value,key) => {
+        return {label: value, value: key};
+      });
+    }
   }
 });
 
@@ -208,6 +223,17 @@ Template.listDirectoryMembers.helpers({
 Template.listDirectoryMembersOrganizations.helpers({
   search (){
     return pageDirectory.get('search');
+  },
+  selectorga (){
+    return pageDirectory.get('selectorga');
+  },
+  listOrganisationTypes (){
+      const listSelect = Lists.findOne({name:'organisationTypes'});
+      if(listSelect && listSelect.list){
+      return _.map(listSelect.list, (value,key) => {
+        return {label: value, value: key};
+      });
+    }
   }
 });
 
@@ -237,36 +263,36 @@ Template.listDirectoryFollowers.helpers({
 
 
 Template.listDirectorycitoyens.events({
-  'keyup #search, change #search': function(event,template){
+  'keyup #search, change #search':_.throttle((event,template) => {
     if(event.currentTarget.value.length>0){
       console.log(event.currentTarget.value);
       pageDirectory.set( 'search', event.currentTarget.value);
     }else{
       pageDirectory.set( 'search', null);
     }
-  }
+  }, 500)
 });
 
 Template.listDirectoryorganizations.events({
-  'keyup #search, change #search': function(event,template){
+  'keyup #search, change #search':_.throttle((event,template) => {
     if(event.currentTarget.value.length>0){
       console.log(event.currentTarget.value);
       pageDirectory.set( 'search', event.currentTarget.value);
     }else{
       pageDirectory.set( 'search', null);
     }
-  }
+  }, 500)
 });
 
 Template.listDirectoryprojects.events({
-  'keyup #search, change #search': function(event,template){
+  'keyup #search, change #search':_.throttle((event,template) => {
     if(event.currentTarget.value.length>0){
       console.log(event.currentTarget.value);
       pageDirectory.set( 'search', event.currentTarget.value);
     }else{
       pageDirectory.set( 'search', null);
     }
-  }
+  }, 500)
 });
 
 Template.listDirectoryFollows.events({
@@ -318,7 +344,13 @@ Template.listDirectoryMemberOf.events({
     evt.preventDefault();
     Meteor.call('connectEntity',this._id._str,'organizations');
     return ;
-  }
+  },
+  "click .selectorga" (evt) {
+    evt.preventDefault();
+    pageDirectory.set( 'selectorga', evt.currentTarget.id);
+    return ;
+  },
+
 });
 
 Template.listDirectoryMembers.events({

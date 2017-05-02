@@ -8,7 +8,7 @@ import { Router } from 'meteor/iron:router';
 export const Organizations = new Meteor.Collection("organizations", {idGeneration : 'MONGO'});
 
 //schemas
-import { baseSchema,geoSchema,roles_SELECT,roles_SELECT_LABEL } from './schema.js'
+import { baseSchema,blockBaseSchema,geoSchema,roles_SELECT,roles_SELECT_LABEL,preferences } from './schema.js'
 
 //collection
 import { Lists } from './lists.js'
@@ -34,20 +34,39 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
     },
     role: {
       type : String,
-      allowedValues: roles_SELECT,
-      autoform: {
-        type: "select",
-        options: roles_SELECT_LABEL,
-      },
+      min: 1,
       denyUpdate: true
     },
     email : {
       type : String,
       regEx: SimpleSchema.RegEx.Email,
       optional: true
+    },
+    fixe : {
+      type : String,
+      optional: true
+    },
+    mobile : {
+      type : String,
+      optional: true
+    },
+    fax : {
+      type : String,
+      optional: true
     }
   }]);
 
+  export const BlockOrganizationsRest = {};
+  BlockOrganizationsRest.description = new SimpleSchema([blockBaseSchema,baseSchema.pick(['shortDescription','description'])]);
+  BlockOrganizationsRest.info = new SimpleSchema([blockBaseSchema,baseSchema.pick(['name','tags','tags.$']),SchemasOrganizationsRest.pick(['type'])]);
+  BlockOrganizationsRest.contact = new SimpleSchema([blockBaseSchema,baseSchema.pick(['url']),SchemasOrganizationsRest.pick(['email','fixe','mobile','fax'])]);
+  BlockOrganizationsRest.locality = new SimpleSchema([blockBaseSchema,geoSchema]);
+  BlockOrganizationsRest.preferences = new SimpleSchema([blockBaseSchema,{
+    preferences : {
+      type: preferences,
+      optional:true
+    }
+  }]);
 //if(Meteor.isClient){
   //collection
   import { News } from './news.js'
@@ -119,7 +138,8 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
       }
     },
     countFollows () {
-      return this.links && this.links.follows && _.size(this.links.follows);
+      //return this.links && this.links.follows && _.size(this.links.follows);
+      return this.listFollows(search).count();
     },
     isFollowers (followId){
       return this.links && this.links.followers && this.links.followers[followId];
@@ -135,8 +155,9 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
         return false;
       }
     },
-    countFollowers () {
-      return this.links && this.links.followers && _.size(this.links.followers);
+    countFollowers (search) {
+      //return this.links && this.links.followers && _.size(this.links.followers);
+      return this.listFollowers(search).count();
     },
     isMembers (){
           return this.links && this.links.members && this.links.members[Meteor.userId()];
@@ -149,8 +170,9 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
         return false;
       }
     },
-    countEvents () {
-      return this.links && this.links.events && _.size(this.links.events);
+    countEvents (search) {
+      //return this.links && this.links.events && _.size(this.links.events);
+      return this.listEvents(search).count();
     },
     listProjects (search){
       if(this.links && this.links.projects){
@@ -160,8 +182,9 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
         return false;
       }
     },
-    countProjects () {
-      return this.links && this.links.projects && _.size(this.links.projects);
+    countProjects (search) {
+      //return this.links && this.links.projects && _.size(this.links.projects);
+      return this.listProjects(search).count();
     },
     listMembers (search){
       if(this.links && this.links.members){
@@ -171,28 +194,35 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
         return false;
       }
     },
-    countMembers () {
-      if(this.links && this.links.members){
+    countMembers (search) {
+      /*if(this.links && this.links.members){
       let members = arrayLinkType(this.links.members,'citoyens');
       return members && _.size(members);
-    }
+      }*/
+      return this.listMembers(search).count();
     },
-    listMembersOrganizations (search){
+    listMembersOrganizations (search,selectorga){
       if(this.links && this.links.members){
-        const query = queryLinkType(this.links.members,search,'organizations');
+        const query = queryLinkType(this.links.members,search,'organizations',selectorga);
           return Organizations.find(query,queryOptions);
       } else{
         return false;
       }
     },
-    countMembersOrganizations () {
-      if(this.links && this.links.members){
+    countMembersOrganizations (search,selectorga) {
+      /*if(this.links && this.links.members){
       let members = arrayLinkType(this.links.members,'organizations');
-      return members && _.size(members);
-    }
+      return members && _.size(members);}*/
+      return this.listMembersOrganizations(search,selectorga).count();
     },
     countPopMap () {
       return this.links && this.links.members && _.size(this.links.members);
+    },
+    typeValue (){
+      return Lists.findOne({name:'organisationTypes'}).list[this.type];
+    },
+    listOrganisationTypes (){
+        return Lists.find({name:'organisationTypes'});
     },
     news () {
       return News.find({'target.id':Router.current().params._id},{sort: {"created": -1},limit: Session.get('limit') });

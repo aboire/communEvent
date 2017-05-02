@@ -8,7 +8,7 @@ import { Router } from 'meteor/iron:router';
 export const Projects = new Meteor.Collection("projects", {idGeneration : 'MONGO'});
 
 //schemas
-import { baseSchema,geoSchema } from './schema.js'
+import { baseSchema,blockBaseSchema,geoSchema,avancements_SELECT,avancements_SELECT_LABEL,preferences } from './schema.js'
 
 //collection
 import { Lists } from './lists.js'
@@ -16,12 +16,45 @@ import { Lists } from './lists.js'
 //SimpleSchema.debug = true;
 
 export const SchemasProjectsRest = new SimpleSchema([baseSchema,geoSchema,{
+  avancement : {
+    type : String
+  },
     startDate : {
       type : Date,
       optional:true
     },
     endDate : {
       type : Date,
+      optional:true
+    },
+    email : {
+      type : String,
+      regEx: SimpleSchema.RegEx.Email,
+      optional: true
+    },
+    fixe : {
+      type : String,
+      optional: true
+    },
+    mobile : {
+      type : String,
+      optional: true
+    },
+    fax : {
+      type : String,
+      optional: true
+    }
+  }]);
+
+  export const BlockProjectsRest = {};
+  BlockProjectsRest.description = new SimpleSchema([blockBaseSchema,baseSchema.pick(['shortDescription','description'])]);
+  BlockProjectsRest.info = new SimpleSchema([blockBaseSchema,baseSchema.pick(['name','tags','tags.$']),SchemasProjectsRest.pick(['avancement'])]);
+  BlockProjectsRest.contact = new SimpleSchema([blockBaseSchema,baseSchema.pick(['url']),SchemasProjectsRest.pick(['email','fixe','mobile','fax'])]);
+  BlockProjectsRest.when = new SimpleSchema([blockBaseSchema,SchemasProjectsRest.pick(['startDate','endDate'])]);
+  BlockProjectsRest.locality = new SimpleSchema([blockBaseSchema,geoSchema]);
+  BlockProjectsRest.preferences = new SimpleSchema([blockBaseSchema,{
+    preferences : {
+      type: preferences,
       optional:true
     }
   }]);
@@ -95,8 +128,9 @@ export const SchemasProjectsRest = new SimpleSchema([baseSchema,geoSchema,{
         return false;
       }
     },
-    countFollows () {
-      return this.links && this.links.follows && _.size(this.links.follows);
+    countFollows (search) {
+      //return this.links && this.links.follows && _.size(this.links.follows);
+      return this.listFollows(search).count();
     },
     isFollowers (followId){
       return this.links && this.links.followers && this.links.followers[followId];
@@ -112,8 +146,9 @@ export const SchemasProjectsRest = new SimpleSchema([baseSchema,geoSchema,{
         return false;
       }
     },
-    countFollowers () {
-      return this.links && this.links.followers && _.size(this.links.followers);
+    countFollowers (search) {
+      //return this.links && this.links.followers && _.size(this.links.followers);
+      return this.listFollowers(search).count();
     },
     isContributors (){
           return this.links && this.links.contributors && this.links.contributors[Meteor.userId()];
@@ -131,8 +166,9 @@ export const SchemasProjectsRest = new SimpleSchema([baseSchema,geoSchema,{
       let now = moment().toDate();
       return moment(start).isBefore(now); // True
     },
-    countContributors () {
-      return this.links && this.links.contributors && _.size(this.links.contributors);
+    countContributors (search) {
+      //return this.links && this.links.contributors && _.size(this.links.contributors);
+      return this.listContributors(search).count();
     },
     listEvents (search){
       if(this.links && this.links.events){
@@ -142,8 +178,9 @@ export const SchemasProjectsRest = new SimpleSchema([baseSchema,geoSchema,{
         return false;
       }
     },
-    countEvents () {
-      return this.links && this.links.events && _.size(this.links.events);
+    countEvents (search) {
+      //return this.links && this.links.events && _.size(this.links.events);
+      return this.listEvents(search).count();
     },
     countPopMap () {
       return this.links && this.links.contributors && _.size(this.links.contributors);

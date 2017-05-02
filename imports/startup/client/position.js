@@ -40,12 +40,12 @@ Meteor.startup(() => {
 
 
 Tracker.autorun(() => {
-  if (Meteor.userId() && Meteor.user()) {
+  //if (Meteor.userId() && Meteor.user()) {
     const geolocate = Session.get('geolocate');
     if (geolocate) {
       position.start();
     } else {
       position.stop();
     }
-  }
+  //}
 });

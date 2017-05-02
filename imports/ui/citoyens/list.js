@@ -14,7 +14,7 @@ import { Mapbox } from 'meteor/pauloborges:mapbox';
 
 
 //collections
-import { Citoyens } from '../../api/citoyens.js';
+import { Citoyens,BlockCitoyensRest } from '../../api/citoyens.js';
 import { NotificationHistory } from '../../api/notification_history.js';
 import { Cities } from '../../api/cities.js';
 
@@ -170,29 +170,7 @@ Template.listCitoyens.events({
   },
 });
 
-/*
-Meteor.call('searchGlobalautocomplete',{name:'test',searchType:['citoyens']})
-*/
-Template.citoyensAdd.onCreated(function () {
-  const template = Template.instance();
-  template.ready = new ReactiveVar();
-  pageSession.set('error', false );
-  pageSession.set('postalCode', null);
-  pageSession.set('country', null);
-  pageSession.set('city', null);
-  pageSession.set('cityName', null);
-  pageSession.set('regionName', null);
-  pageSession.set('depName', null);
-  pageSession.set('geoPosLatitude', null);
-  pageSession.set('geoPosLongitude', null);
 
-  this.autorun(function(c) {
-      const handleList = listsSubs.subscribe('lists');
-      if(handleList.ready()){
-        template.ready.set(handleList.ready());
-      }
-  });
-});
 
 Template.citoyensEdit.onCreated(function () {
   const template = Template.instance();
@@ -207,26 +185,17 @@ Template.citoyensEdit.onCreated(function () {
   pageSession.set('geoPosLatitude', null);
   pageSession.set('geoPosLongitude', null);
 
+
   this.autorun(function(c) {
-      const handleList = listsSubs.subscribe('lists');
       const handle = Meteor.subscribe('scopeDetail','citoyens',Router.current().params._id);
-      if(handleList.ready() && handle.ready()){
+      if(handle.ready()){
         template.ready.set(handle.ready());
       }
   });
 });
 
-Template.citoyensAdd.helpers({
-  error () {
-    return pageSession.get( 'error' );
-  },
-  dataReady() {
-  return Template.instance().ready.get();
-  }
-});
-
 Template.citoyensEdit.helpers({
-  citoyen () {
+  citoyen() {
     let citoyen = Citoyens.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
     let citoyenEdit = {};
     citoyenEdit._id = citoyen._id._str;
@@ -235,20 +204,50 @@ Template.citoyensEdit.helpers({
     citoyenEdit.email = citoyen.email;
     citoyenEdit.url = citoyen.url;
     citoyenEdit.role = citoyen.role;
-    citoyenEdit.tags = citoyen.tags;
+    if(citoyen.tags){
+      citoyenEdit.tags = citoyen.tags;
+    }
     citoyenEdit.description = citoyen.description;
     citoyenEdit.shortDescription = citoyen.shortDescription;
+    if(citoyen.telephone){
+      if(citoyen.telephone.fixe){
+        citoyenEdit.fixe = citoyen.telephone.fixe.join();
+      }
+      if(citoyen.telephone.mobile){
+        citoyenEdit.mobile = citoyen.telephone.mobile.join();
+      }
+      if(citoyen.telephone.fax){
+        citoyenEdit.fax = citoyen.telephone.fax.join();
+      }
+    }
+    citoyenEdit.birthDate = citoyen.birthDate;
+    if(citoyen.socialNetwork){
+      if(citoyen.socialNetwork.telegram){
+      citoyenEdit.telegramAccount = citoyen.socialNetwork.telegram;
+    }
+    if(citoyen.socialNetwork.skype){
+      citoyenEdit.skypeAccount = citoyen.socialNetwork.skype;
+    }
+    if(citoyen.socialNetwork.googleplus){
+      citoyenEdit.gpplusAccount = citoyen.socialNetwork.googleplus;
+    }
+    if(citoyen.socialNetwork.github){
+      citoyenEdit.githubAccount = citoyen.socialNetwork.github;
+    }
+    if(citoyen.socialNetwork.twitter){
+      citoyenEdit.twitterAccount = citoyen.socialNetwork.twitter;
+    }
+    if(citoyen.socialNetwork.facebook){
+      citoyenEdit.facebookAccount = citoyen.socialNetwork.facebook;
+    }
+    }
+
     if(citoyen && citoyen.preferences){
       citoyenEdit.preferences = {};
-      if(citoyen.preferences.isOpenData == "true"){
+      if(citoyen.preferences.isOpenData === true){
         citoyenEdit.preferences.isOpenData = true;
       }else{
         citoyenEdit.preferences.isOpenData = false;
-      }
-      if(citoyen.preferences.isOpenEdition == "true"){
-        citoyenEdit.preferences.isOpenEdition = true;
-      }else{
-        citoyenEdit.preferences.isOpenEdition = false;
       }
     }
     citoyenEdit.country = citoyen.address.addressCountry;
@@ -268,7 +267,7 @@ Template.citoyensEdit.helpers({
     citoyenEdit.geoPosLongitude = citoyen.geo.longitude;
     return citoyenEdit;
   },
-  error () {
+  error() {
     return pageSession.get( 'error' );
   },
   dataReady() {
@@ -276,6 +275,144 @@ Template.citoyensEdit.helpers({
   }
 });
 
+
+Template.citoyensBlockEdit.onCreated(function () {
+  const template = Template.instance();
+  template.ready = new ReactiveVar();
+  pageSession.set('error', false );
+  pageSession.set('postalCode', null);
+  pageSession.set('country', null);
+  pageSession.set('city', null);
+  pageSession.set('cityName', null);
+  pageSession.set('regionName', null);
+  pageSession.set('depName', null);
+  pageSession.set('geoPosLatitude', null);
+  pageSession.set('geoPosLongitude', null);
+
+    this.autorun(function(c) {
+        Session.set('scopeId', Router.current().params._id);
+        Session.set('block', Router.current().params.block);
+    });
+
+  this.autorun(function(c) {
+      const handle = Meteor.subscribe('scopeDetail','citoyens',Router.current().params._id);
+      if(handle.ready()){
+        template.ready.set(handle.ready());
+      }
+  });
+
+});
+
+Template.citoyensBlockEdit.helpers({
+  citoyen() {
+    let citoyen = Citoyens.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
+    let citoyenEdit = {};
+    citoyenEdit._id = citoyen._id._str;
+    if(Router.current().params.block === 'description'){
+      citoyenEdit.description = citoyen.description;
+      citoyenEdit.shortDescription = citoyen.shortDescription;
+    }else if(Router.current().params.block === 'info'){
+      citoyenEdit.name = citoyen.name;
+      citoyenEdit.username = citoyen.username;
+      if(citoyen.tags){
+        citoyenEdit.tags = citoyen.tags;
+      }
+      if(citoyen.socialNetwork){
+        if(citoyen.socialNetwork.telegram){
+        citoyenEdit.telegramAccount = citoyen.socialNetwork.telegram;
+      }
+      if(citoyen.socialNetwork.skype){
+        citoyenEdit.skypeAccount = citoyen.socialNetwork.skype;
+      }
+      if(citoyen.socialNetwork.googleplus){
+        citoyenEdit.gpplusAccount = citoyen.socialNetwork.googleplus;
+      }
+      if(citoyen.socialNetwork.github){
+        citoyenEdit.githubAccount = citoyen.socialNetwork.github;
+      }
+      if(citoyen.socialNetwork.twitter){
+        citoyenEdit.twitterAccount = citoyen.socialNetwork.twitter;
+      }
+      if(citoyen.socialNetwork.facebook){
+        citoyenEdit.facebookAccount = citoyen.socialNetwork.facebook;
+      }
+      }
+    }else if(Router.current().params.block === 'contact'){
+      citoyenEdit.email = citoyen.email;
+      citoyenEdit.url = citoyen.url;
+      if(citoyen.telephone){
+        if(citoyen.telephone.fixe){
+          citoyenEdit.fixe = citoyen.telephone.fixe.join();
+        }
+        if(citoyen.telephone.mobile){
+          citoyenEdit.mobile = citoyen.telephone.mobile.join();
+        }
+        if(citoyen.telephone.fax){
+          citoyenEdit.fax = citoyen.telephone.fax.join();
+        }
+      }
+      citoyenEdit.birthDate = citoyen.birthDate;
+    }else if(Router.current().params.block === 'locality'){
+      citoyenEdit.country = citoyen.address.addressCountry;
+      citoyenEdit.postalCode = citoyen.address.postalCode;
+      citoyenEdit.city = citoyen.address.codeInsee;
+      citoyenEdit.cityName = citoyen.address.addressLocality;
+      if(citoyen && citoyen.address && citoyen.address.streetAddress){
+        citoyenEdit.streetAddress = citoyen.address.streetAddress;
+      }
+      if(citoyen && citoyen.address && citoyen.address.regionName){
+        citoyenEdit.regionName = citoyen.address.regionName;
+      }
+      if(citoyen && citoyen.address && citoyen.address.depName){
+        citoyenEdit.depName = citoyen.address.depName;
+      }
+      citoyenEdit.geoPosLatitude = citoyen.geo.latitude;
+      citoyenEdit.geoPosLongitude = citoyen.geo.longitude;
+    }else if(Router.current().params.block === 'preferences'){
+      if(citoyen && citoyen.preferences){
+        citoyenEdit.preferences = {};
+        const fieldsArray = ['email','locality','phone','directory','birthDate'];
+        if(citoyen && citoyen.preferences && citoyen.preferences.publicFields){
+          _.each(fieldsArray, (field) => {
+            if(citoyen.isPublicFields(field)){
+              citoyenEdit.preferences[field] = 'public';
+            }
+          });
+        }
+        if(citoyen && citoyen.preferences && citoyen.preferences.privateFields){
+          _.each(fieldsArray, (field) => {
+            if(citoyen.isPrivateFields(field)){
+              citoyenEdit.preferences[field] = 'private';
+            }
+          });
+        }
+        _.each(fieldsArray, (field) => {
+          if(!citoyen.isPrivateFields(field) && !citoyen.isPublicFields(field)){
+            citoyenEdit.preferences[field] = 'hide';
+          }
+        });
+        if(citoyen.preferences.isOpenData === true){
+          citoyenEdit.preferences.isOpenData = true;
+        }else{
+          citoyenEdit.preferences.isOpenData = false;
+        }
+      }
+    }
+    return citoyenEdit;
+  },
+  blockSchema() {
+    return BlockCitoyensRest[Router.current().params.block];
+  },
+  block() {
+    return Router.current().params.block;
+  },
+  error() {
+    return pageSession.get( 'error' );
+  },
+  dataReady() {
+  return Template.instance().ready.get();
+  }
+});
 
 
 Template.citoyensFields.helpers({
@@ -339,7 +476,7 @@ Template.citoyensFields.onRendered(function() {
   pageSession.set('geoPosLongitude', null);
 
   let geolocate = Session.get('geolocate');
-  if(geolocate && Router.current().route.getName()!="citoyensEdit"){
+  if(geolocate && Router.current().route.getName()!="citoyensEdit" && Router.current().route.getName()!="citoyensBlockEdit"){
     var onOk=IonPopup.confirm({template:TAPi18n.__('Utiliser votre position actuelle ?'),
     onOk: function(){
       let geo = Location.getReactivePosition();
@@ -379,10 +516,11 @@ Template.citoyensFields.onRendered(function() {
 
 
 Template.citoyensFields.events({
-  'keyup input[name="postalCode"],change input[name="postalCode"]': function(e, tmpl) {
+  'keyup input[name="postalCode"],change input[name="postalCode"]':_.throttle((e, tmpl) => {
     e.preventDefault();
     pageSession.set( 'postalCode', tmpl.$(e.currentTarget).val() );
-  },
+  }, 500)
+  ,
   'change select[name="country"]': function(e, tmpl) {
     e.preventDefault();
     //console.log(tmpl.$(e.currentTarget).val());
@@ -401,8 +539,7 @@ Template.citoyensFields.events({
     //console.log(insee.geo.latitude);
     //console.log(insee.geo.longitude);
   },
-  'change input[name="streetAddress"]': function(event,template){
-
+  'change input[name="streetAddress"]':_.throttle((event,template) => {
     function addToRequest(request, dataStr){
       if(dataStr == "") return request;
       if(request != "") dataStr = " " + dataStr;
@@ -452,16 +589,11 @@ Template.citoyensFields.events({
       }
     );
   }
-}
+}, 500)
 });
 
-AutoForm.addHooks(['addCitoyen', 'editCitoyen'], {
+AutoForm.addHooks(['editCitoyen'], {
   after: {
-    method : function(error, result) {
-      if (!error) {
-        Router.go('newsList', {_id:result.data.id,scope:'citoyens'});
-      }
-    },
     "method-update" : function(error, result) {
       if (!error) {
         Router.go('newsList', {_id:result.data.id,scope:'citoyens'});
@@ -474,22 +606,38 @@ AutoForm.addHooks(['addCitoyen', 'editCitoyen'], {
         pageSession.set( 'error', error.reason.replace(": ", ""));
       }
     }
-
-    //let ref;
-    //if (error.errorType && error.errorType === 'Meteor.Error') {
-      //if (error.reason === 'Something went really bad  An citoyen with the same name allready exists') {
-      //this.addStickyValidationError('name', error.reason.replace(":", " "));
-      //this.addStickyValidationError('name', error.errorType , error.reason)
-      //AutoForm.validateField(this.formId, 'name');
-      //}
-    //}
   }
 });
 
-AutoForm.addHooks(['addCitoyen'], {
+AutoForm.addHooks(['editBlockCitoyen'], {
+  after: {
+    "method-update" : function(error, result) {
+      if (!error) {
+        if(Session.get('block')!=='preferences'){
+            Router.go('newsList', {_id:Session.get('scopeId'),scope:'citoyens'});
+        }
+      }
+    }
+  },
   before: {
-    method : function(doc, template) {
-      return doc;
+    "method-update" : function(modifier, documentId) {
+      let scope = 'citoyens';
+      let block = Session.get('block');
+      if(modifier && modifier["$set"]){
+
+      }else{
+        modifier["$set"] = {};
+      }
+      modifier["$set"].typeElement = scope;
+      modifier["$set"].block = block;
+      return modifier;
+    }
+  },
+  onError: function(formType, error) {
+    if (error.errorType && error.errorType === 'Meteor.Error') {
+      if (error && error.error === "error_call") {
+        pageSession.set( 'error', error.reason.replace(": ", ""));
+      }
     }
   }
 });

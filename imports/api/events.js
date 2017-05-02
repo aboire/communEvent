@@ -8,7 +8,7 @@ import { Router } from 'meteor/iron:router';
 export const Events = new Meteor.Collection("events", {idGeneration : 'MONGO'});
 
 //schemas
-import { baseSchema,geoSchema,Countries_SELECT,Countries_SELECT_LABEL } from './schema.js'
+import { baseSchema,blockBaseSchema,geoSchema,Countries_SELECT,Countries_SELECT_LABEL,preferences } from './schema.js'
 
 //collection
 import { Lists } from './lists.js'
@@ -41,9 +41,37 @@ export const SchemasEventsRest = new SimpleSchema([baseSchema,geoSchema, {
     },
     endDate : {
       type : Date
+    },
+    email : {
+      type : String,
+      optional: true
+    },
+    fixe : {
+      type : String,
+      optional: true
+    },
+    mobile : {
+      type : String,
+      optional: true
+    },
+    fax : {
+      type : String,
+      optional: true
     }
   }]);
 
+  export const BlockEventsRest = {};
+  BlockEventsRest.description = new SimpleSchema([blockBaseSchema,baseSchema.pick(['shortDescription','description'])]);
+  BlockEventsRest.info = new SimpleSchema([blockBaseSchema,baseSchema.pick(['name','tags','tags.$']),SchemasEventsRest.pick(['type'])]);
+  BlockEventsRest.contact = new SimpleSchema([blockBaseSchema,baseSchema.pick(['url']),SchemasEventsRest.pick(['email','fixe','mobile','fax'])]);
+  BlockEventsRest.when = new SimpleSchema([blockBaseSchema,SchemasEventsRest.pick(['allDay','startDate','endDate'])]);
+  BlockEventsRest.locality = new SimpleSchema([blockBaseSchema,geoSchema]);
+  BlockEventsRest.preferences = new SimpleSchema([blockBaseSchema,{
+    preferences : {
+      type: preferences,
+      optional:true
+    }
+  }]);
 
 //if(Meteor.isClient){
   //collection
@@ -120,6 +148,12 @@ export const SchemasEventsRest = new SimpleSchema([baseSchema,geoSchema, {
       let start = moment(this.startDate).toDate();
       let now = moment().toDate();
       return moment(start).isBefore(now); // True
+    },
+    typeValue (){
+      return Lists.findOne({name:'eventTypes'}).list[this.type];
+    },
+    listEventTypes (){
+        return Lists.find({name:'eventTypes'});
     },
     news () {
       return News.find({'target.id':Router.current().params._id},{sort: {"created": -1},limit: Session.get('limit') });

@@ -155,6 +155,29 @@
   {{> afQuickField name='text' rows=8}}
 </template>
 
+<template name="actionSheet">
+  {{#if equals scopeVar 'events'}}
+  {{#if isAdmin}}
+  <a href="#" class="button button-positive action-card-events"><i class="icon fa fa-cog"></i></a>
+  {{/if}}
+  {{/if}}
+  {{#if equals scopeVar 'projects'}}
+  {{#if isAdmin}}
+  <a href="#" class="button button-positive action-card-projects"><i class="icon fa fa-cog"></i></a>
+  {{/if}}
+  {{/if}}
+  {{#if equals scopeVar 'organizations'}}
+  {{#if isAdmin}}
+  <a href="#" class="button button-positive action-card-organizations"><i class="icon fa fa-cog"></i></a>
+  {{/if}}
+  {{/if}}
+  {{#if equals scopeVar 'citoyens'}}
+  {{#if isMe}}
+  <a href="#" class="button button-positive action-card-citoyen"><i class="icon fa fa-cog"></i></a>
+  {{/if}}
+  {{/if}}
+</template>
+
 <template name="listCard">
   <div class="list card">
     <div class="item item-avatar item-button-right">
@@ -165,14 +188,13 @@
       {{/if}}
       <h2 class="homestead">{{name}}</h2>
       {{#if creatorProfile}}<p>{{_ "creator"}} : {{creatorProfile.name}}</p>{{/if}}
+      {{#if typeValue}}{{typeValue}}{{/if}}
       {{#if isVisibleFields 'birthDate'}}
       {{#if birthDate}}
       <p><i class="icon fa fa-birthday-cake"></i> {{formatBirthDate}} ({{diffInText birthDate}})</p>
       {{/if}}
       {{/if}}
-      {{#if isAdmin}}
-      <a href="{{pathFor scopeEdit _id=_id._str}}" class="button button-positive">{{> ionIcon icon="edit"}}</a>
-      {{/if}}
+      {{> actionSheet}}
     </div>
 
     <div class="item item-image">
@@ -327,16 +349,15 @@
       <a href="{{pathFor 'newsAdd' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small">{{> ionIcon icon="compose"}}</a>
       <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
       {{#if isAdmin}}
-
+      {{#if isCordova}}
+      <button class="button button-small scanner-event">{{> ionIcon icon="ios-barcode"}} {{_ "QR Scanner"}}</button>
+      {{/if}}
       {{else}}
       <button class="button button-small disconnectscope-link"><i class="icon fa fa-unlink"></i></button>
       {{/if}}
       {{else}}
       <button class="button button-small connectscope-link">{{> ionIcon icon="person-add"}} {{_ "Become a member"}}</button>
       <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
-      {{#if isCordova}}
-      <button class="button button-small scanner-event">{{> ionIcon icon="ios-barcode"}} {{_ "QR Scanner"}}</button>
-      {{/if}}
       {{/if}}
     </div>
   </div>
@@ -350,16 +371,15 @@
       <a href="{{pathFor 'newsAdd' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small">{{> ionIcon icon="compose"}}</a>
       <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
       {{#if isAdmin}}
-
+      {{#if isCordova}}
+      <button class="button button-small scanner-event">{{> ionIcon icon="ios-barcode"}} {{_ "QR Scanner"}}</button>
+      {{/if}}
       {{else}}
       <button class="button button-small disconnectscope-link"><i class="icon fa fa-unlink"></i></button>
       {{/if}}
       {{else}}
       <button class="button button-small connectscope-link"><i class="icon fa fa-link"></i> {{_ "Become a contributor"}}</button>
       <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
-      {{#if isCordova}}
-      <button class="button button-small scanner-event">{{> ionIcon icon="ios-barcode"}} {{_ "QR Scanner"}}</button>
-      {{/if}}
       {{/if}}
     </div>
   </div>
@@ -381,9 +401,6 @@
       {{/if}}
       {{#if isVisibleFields 'directory'}}
       <a href="{{pathFor 'directory' _id=_id._str scope=($.Session.get 'scope')}}" class="button button-small"><i class="icon fa fa-connectdevelop"></i></a>
-      {{/if}}
-      {{#if isCordova}}
-      <button class="button button-small scanner-event">{{> ionIcon icon="ios-barcode"}} {{_ "QR Scanner"}}</button>
       {{/if}}
       {{/if}}
     </div>

@@ -14,7 +14,7 @@ import { Mapbox } from 'meteor/pauloborges:mapbox';
 
 //collections
 import { Citoyens } from '../../api/citoyens.js';
-import { Organizations } from '../../api/organizations.js';
+import { Organizations,BlockOrganizationsRest } from '../../api/organizations.js';
 import { Cities } from '../../api/cities.js';
 
 //submanager
@@ -166,7 +166,7 @@ Template.organizationsAdd.onCreated(function () {
   pageSession.set('geoPosLongitude', null);
 
   this.autorun(function(c) {
-      const handleList = listsSubs.subscribe('lists');
+      const handleList = listsSubs.subscribe('lists','organisationTypes');
       if(handleList.ready()){
         template.ready.set(handleList.ready());
       }
@@ -187,7 +187,34 @@ Template.organizationsEdit.onCreated(function () {
   pageSession.set('geoPosLongitude', null);
 
   this.autorun(function(c) {
-      const handleList = listsSubs.subscribe('lists');
+      const handleList = listsSubs.subscribe('lists','organisationTypes');
+      const handle = Meteor.subscribe('scopeDetail','organizations',Router.current().params._id);
+      if(handleList.ready() && handle.ready()){
+        template.ready.set(handle.ready());
+      }
+  });
+});
+
+Template.organizationsBlockEdit.onCreated(function () {
+  const template = Template.instance();
+  template.ready = new ReactiveVar();
+  pageSession.set('error', false );
+  pageSession.set('postalCode', null);
+  pageSession.set('country', null);
+  pageSession.set('city', null);
+  pageSession.set('cityName', null);
+  pageSession.set('regionName', null);
+  pageSession.set('depName', null);
+  pageSession.set('geoPosLatitude', null);
+  pageSession.set('geoPosLongitude', null);
+
+  this.autorun(function(c) {
+      Session.set('scopeId', Router.current().params._id);
+      Session.set('block', Router.current().params.block);
+  });
+
+  this.autorun(function(c) {
+      const handleList = listsSubs.subscribe('lists','organisationTypes');
       const handle = Meteor.subscribe('scopeDetail','organizations',Router.current().params._id);
       if(handleList.ready() && handle.ready()){
         template.ready.set(handle.ready());
@@ -255,7 +282,83 @@ Template.organizationsEdit.helpers({
   }
 });
 
-
+Template.organizationsBlockEdit.helpers({
+  organization () {
+    let organization = Organizations.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
+    let organizationEdit = {};
+    organizationEdit._id = organization._id._str;
+    if(Router.current().params.block === 'description'){
+      organizationEdit.description = organization.description;
+      organizationEdit.shortDescription = organization.shortDescription;
+    }else if(Router.current().params.block === 'info'){
+      organizationEdit.name = organization.name;
+      organizationEdit.type = organization.type;
+      organizationEdit.role = organization.role;
+      if(organization.tags){
+        organizationEdit.tags = organization.tags;
+      }
+    }else if(Router.current().params.block === 'contact'){
+      organizationEdit.email = organization.email;
+      organizationEdit.url = organization.url;
+      if(organization.telephone){
+        if(organization.telephone.fixe){
+          organizationEdit.fixe = organization.telephone.fixe.join();
+        }
+        if(organization.telephone.mobile){
+          organizationEdit.mobile = organization.telephone.mobile.join();
+        }
+        if(organization.telephone.fax){
+          organizationEdit.fax = organization.telephone.fax.join();
+        }
+      }
+    }else if(Router.current().params.block === 'locality'){
+      if(organization && organization.address){
+      organizationEdit.country = organization.address.addressCountry;
+      organizationEdit.postalCode = organization.address.postalCode;
+      organizationEdit.city = organization.address.codeInsee;
+      organizationEdit.cityName = organization.address.addressLocality;
+      if(organization && organization.address && organization.address.streetAddress){
+        organizationEdit.streetAddress = organization.address.streetAddress;
+      }
+      if(organization && organization.address && organization.address.regionName){
+        organizationEdit.regionName = organization.address.regionName;
+      }
+      if(organization && organization.address && organization.address.depName){
+        organizationEdit.depName = organization.address.depName;
+      }
+      organizationEdit.geoPosLatitude = organization.geo.latitude;
+      organizationEdit.geoPosLongitude = organization.geo.longitude;
+    }
+  }else if(Router.current().params.block === 'preferences'){
+    if(organization && organization.preferences){
+      organizationEdit.preferences = {};
+      if(organization.preferences.isOpenData === true){
+        organizationEdit.preferences.isOpenData = true;
+      }else{
+        organizationEdit.preferences.isOpenData = false;
+      }
+      if(organization.preferences.isOpenEdition === true){
+        organizationEdit.preferences.isOpenEdition = true;
+      }else{
+        organizationEdit.preferences.isOpenEdition = false;
+      }
+    }
+  }
+    return organizationEdit;
+  },
+  blockSchema() {
+    return BlockOrganizationsRest[Router.current().params.block];
+  },
+  block() {
+    return Router.current().params.block;
+  },
+  error () {
+    return pageSession.get( 'error' );
+  },
+  dataReady() {
+  return Template.instance().ready.get();
+  }
+});
 
 Template.organizationsFields.helpers({
   optionsInsee () {
@@ -318,7 +421,7 @@ Template.organizationsFields.onRendered(function() {
   pageSession.set('geoPosLongitude', null);
 
   let geolocate = Session.get('geolocate');
-  if(geolocate && Router.current().route.getName()!="organizationsEdit"){
+  if(geolocate && Router.current().route.getName()!="organizationsEdit" && Router.current().route.getName()!="organizationsBlockEdit"){
     var onOk=IonPopup.confirm({template:TAPi18n.__('Utiliser votre position actuelle ?'),
     onOk: function(){
       let geo = Location.getReactivePosition();
@@ -358,10 +461,11 @@ Template.organizationsFields.onRendered(function() {
 
 
 Template.organizationsFields.events({
-  'keyup input[name="postalCode"],change input[name="postalCode"]': function(e, tmpl) {
+  'keyup input[name="postalCode"],change input[name="postalCode"]':_.throttle((e, tmpl) => {
     e.preventDefault();
     pageSession.set( 'postalCode', tmpl.$(e.currentTarget).val() );
-  },
+  }, 500)
+  ,
   'change select[name="country"]': function(e, tmpl) {
     e.preventDefault();
     //console.log(tmpl.$(e.currentTarget).val());
@@ -380,8 +484,7 @@ Template.organizationsFields.events({
     //console.log(insee.geo.latitude);
     //console.log(insee.geo.longitude);
   },
-  'change input[name="streetAddress"]': function(event,template){
-
+  'change input[name="streetAddress"]':_.throttle((event,template) => {
     function addToRequest(request, dataStr){
       if(dataStr == "") return request;
       if(request != "") dataStr = " " + dataStr;
@@ -431,7 +534,7 @@ Template.organizationsFields.events({
       }
     );
   }
-}
+}, 500)
 });
 
 AutoForm.addHooks(['addOrganization', 'editOrganization'], {
@@ -469,6 +572,39 @@ AutoForm.addHooks(['addOrganization'], {
   before: {
     method : function(doc, template) {
       return doc;
+    }
+  }
+});
+
+AutoForm.addHooks(['editBlockOrganization'], {
+  after: {
+    "method-update" : function(error, result) {
+      if (!error) {
+        if(Session.get('block')!=='preferences'){
+        Router.go('newsList', {_id:Session.get('scopeId'),scope:'organizations'});
+      }
+      }
+    }
+  },
+  before: {
+    "method-update" : function(modifier, documentId) {
+      let scope = 'organizations';
+      let block = Session.get('block');
+      if(modifier && modifier["$set"]){
+
+      }else{
+        modifier["$set"] = {};
+      }
+      modifier["$set"].typeElement = scope;
+      modifier["$set"].block = block;
+      return modifier;
+    }
+  },
+  onError: function(formType, error) {
+    if (error.errorType && error.errorType === 'Meteor.Error') {
+      if (error && error.error === "error_call") {
+        pageSession.set( 'error', error.reason.replace(": ", ""));
+      }
     }
   }
 });

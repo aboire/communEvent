@@ -2,7 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 
-//SimpleSchema.debug = true;
+SimpleSchema.debug = true;
 
 export const Countries_SELECT = ["FR","GP","MQ","YT","NC","RE"];
 export const Countries_SELECT_LABEL = [{label : "France",value: "FR"},{label:"Guadeloupe",value:"GP"},{label:"Guyanne Française",value:"GF"},{label:"Martinique",value:"MQ"},{label:"Mayotte",value:"YT"},{label:"Nouvelle-Calédonie",value:"NC"},{label:"Réunion",value:"RE"},{label:"St Pierre et Miquelon",value:"PM"}];
@@ -10,6 +10,19 @@ export const Countries_SELECT_LABEL = [{label : "France",value: "FR"},{label:"Gu
 export const roles_SELECT = ["admin","member","creator"];
 export const roles_SELECT_LABEL = [{label : "Administrateur",value: "admin"},{label:"Membre",value:"member"},{label:"Juste un citoyen qui veut faire connaître cette organisation",value:"creator"}];
 
+export const avancements_SELECT = ["idea","concept","started","development","testing","mature"];
+export const avancements_SELECT_LABEL = [{label : "idea",value: "idea"},{label:"concept",value:"concept"},{label:"started",value:"started"},{label:"development",value:"development"},{label:"testing",value:"testing"},{label:"mature",value:"mature"}];
+
+export const preferences_SELECT = ["public","private","hide"];
+
+export const blockBaseSchema = new SimpleSchema({
+typeElement : {
+type : String
+},
+block : {
+type : String
+}
+});
 
 export const preferences = new SimpleSchema({
   isOpenData : {
@@ -21,7 +34,8 @@ export const preferences = new SimpleSchema({
       } else {
         return true;
       }
-    }
+    },
+    optional:true
   },
   isOpenEdition: {
     type : Boolean,
@@ -32,11 +46,13 @@ export const preferences = new SimpleSchema({
       } else {
         return true;
       }
-    }
+    },
+    optional:true
   }
 });
 
-export const baseSchema = {
+
+export const baseSchema = new SimpleSchema({
   name : {
     type : String
   },
@@ -68,16 +84,12 @@ export const baseSchema = {
     type: preferences,
     optional:true
   }
-}
+});
 
-export const geoSchema = {
+export const geoSchema = new SimpleSchema({
   country : {
     type : String,
-    allowedValues: Countries_SELECT,
-    autoform: {
-      type: "select",
-      options: Countries_SELECT_LABEL,
-    }
+    min: 1
   },
   streetAddress: {
     type : String,
@@ -122,7 +134,7 @@ export const geoSchema = {
     decimal: true,
     optional:true
   }
-}
+});
 
 export const GeoCoordinates = new SimpleSchema({
   longitude: {
@@ -158,12 +170,7 @@ export const PostalAddress = new SimpleSchema({
     optional: true
   },
   addressCountry: {
-    type : String,
-    allowedValues: Countries_SELECT,
-    autoform: {
-      type: "select",
-      options: Countries_SELECT_LABEL,
-    }
+    type : String
   },
   postalCode: {
     type : String,

@@ -95,11 +95,20 @@ Meteor.publish('globalautocomplete', function(query) {
   }
 });
 
-Meteor.publish('lists', function() {
+Meteor.publish('lists', function(name) {
 	if (!this.userId) {
 		return;
 	}
-	let lists = Lists.find({});
+	check(name, String);
+	/*countries
+	public
+	typeIntervention
+	listRoomTypes
+	eventTypes
+	NGOCategories
+	localBusinessCategories
+	tags*/
+	let lists = Lists.find({name:name});
 	return lists;
 });
 
@@ -252,8 +261,8 @@ Meteor.publishComposite('geo.scope', function(scope,latlng,radius) {
 		},
 		children: [
 			{
-				find: function(scope) {
-					return scope.documents();
+				find: function(scopeD) {
+					return scopeD.documents();
 				}
 			}
 		]}
@@ -287,6 +296,15 @@ Meteor.publishComposite('geo.scope', function(scope,latlng,radius) {
 			children: [
 				{
 					find: function(scopeD) {
+						if(scope === 'events'){
+						return scopeD.listEventTypes();
+					} else if(scope === 'organizations'){
+						return scopeD.listOrganisationTypes();
+					}
+					}
+				},
+				{
+					find: function(scopeD) {
 						return Citoyens.find({
 							_id: new Mongo.ObjectID(scopeD.creator)
 						}, {
@@ -298,9 +316,11 @@ Meteor.publishComposite('geo.scope', function(scope,latlng,radius) {
 				},
 				{
 					find: function(scopeD) {
-						return Cities.find({
-							'postalCodes.postalCode': scopeD.address.postalCode
-						});
+						if(scopeD && scopeD.address && scopeD.address.postalCode){
+							return Cities.find({
+								'postalCodes.postalCode': scopeD.address.postalCode
+							});
+						}
 					}
 				},
 				{
@@ -334,6 +354,11 @@ Meteor.publishComposite('geo.scope', function(scope,latlng,radius) {
 					return collection.find({_id:new Mongo.ObjectID(scopeId)},options);
 				},
 				children: [
+					{
+						find: function(scopeD) {
+							return Lists.find({name:{$in:['eventTypes','organisationTypes']}});
+						}
+					},
 					{
 						find: function(scopeD) {
 						if(scope === 'citoyens'){
@@ -386,7 +411,6 @@ Meteor.publishComposite('geo.scope', function(scope,latlng,radius) {
 							}
 						]
 					},
-
 					{
 						find: function(scopeD) {
 							if(scope === 'citoyens' || scope === 'organizations'){
@@ -416,8 +440,8 @@ Meteor.publishComposite('geo.scope', function(scope,latlng,radius) {
 						]
 					},
 					{
-						find: function(scope) {
-							return scope.documents();
+						find: function(scopeD) {
+							return scopeD.documents();
 						}
 					}
 				]}

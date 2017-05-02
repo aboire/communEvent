@@ -125,6 +125,187 @@ Template.listCard.helpers({
   }
 });
 
+Template.actionSheet.events({
+  "click .action-card-citoyen" (e, t) {
+    const self=this;
+    e.preventDefault();
+    //info,description,contact
+    IonActionSheet.show({
+      titleText: TAPi18n.__('Actions Citoyens'),
+      buttons: [
+        { text: `${TAPi18n.__('edit info')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit contact')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit description')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit address')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit privacy settings')} <i class="icon ion-edit"></i>` },
+      ],
+      cancelText: TAPi18n.__('cancel'),
+      cancel: function() {
+        console.log('Cancelled!');
+      },
+      buttonClicked: function(index) {
+        if (index === 0) {
+          console.log('Edit!');
+          Router.go('citoyensBlockEdit', {_id:Router.current().params._id,block:'info'});
+        }
+        if (index === 1) {
+          console.log('Edit!');
+          Router.go('citoyensBlockEdit', {_id:Router.current().params._id,block:'contact'});
+        }
+        if (index === 2) {
+          console.log('Edit!');
+          Router.go('citoyensBlockEdit', {_id:Router.current().params._id,block:'description'});
+        }
+        if (index === 3) {
+          console.log('Edit!');
+          Router.go('citoyensBlockEdit', {_id:Router.current().params._id,block:'locality'});
+        }
+        if (index === 4) {
+          console.log('Edit!');
+          Router.go('citoyensBlockEdit', {_id:Router.current().params._id,block:'preferences'});
+        }
+        return true;
+      }
+    });
+  },
+  "click .action-card-events" (e, t) {
+    const self=this;
+    e.preventDefault();
+    //info,description,contact
+    IonActionSheet.show({
+      titleText: TAPi18n.__('Actions Events'),
+      buttons: [
+        { text: `${TAPi18n.__('edit info')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit contact')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit description')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit address')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit dates')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit privacy settings')} <i class="icon ion-edit"></i>` },
+      ],
+      cancelText: TAPi18n.__('cancel'),
+      cancel: function() {
+        console.log('Cancelled!');
+      },
+      buttonClicked: function(index) {
+        if (index === 0) {
+          console.log('Edit!');
+          Router.go('eventsBlockEdit', {_id:Router.current().params._id,block:'info'});
+        }
+        if (index === 1) {
+          console.log('Edit!');
+          Router.go('eventsBlockEdit', {_id:Router.current().params._id,block:'contact'});
+        }
+        if (index === 2) {
+          console.log('Edit!');
+          Router.go('eventsBlockEdit', {_id:Router.current().params._id,block:'description'});
+        }
+        if (index === 3) {
+          console.log('Edit!');
+          Router.go('eventsBlockEdit', {_id:Router.current().params._id,block:'locality'});
+        }
+        if (index === 4) {
+          console.log('Edit!');
+          Router.go('eventsBlockEdit', {_id:Router.current().params._id,block:'when'});
+        }
+        if (index === 5) {
+          console.log('Edit!');
+          Router.go('eventsBlockEdit', {_id:Router.current().params._id,block:'preferences'});
+        }
+        return true;
+      }
+    });
+  },
+  "click .action-card-organizations" (e, t) {
+    const self=this;
+    e.preventDefault();
+    //info,description,contact
+    IonActionSheet.show({
+      titleText: TAPi18n.__('Actions Organizations'),
+      buttons: [
+        { text: `${TAPi18n.__('edit info')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit contact')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit description')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit address')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit privacy settings')} <i class="icon ion-edit"></i>` },
+      ],
+      cancelText: TAPi18n.__('cancel'),
+      cancel: function() {
+        console.log('Cancelled!');
+      },
+      buttonClicked: function(index) {
+        if (index === 0) {
+          console.log('Edit!');
+          Router.go('organizationsBlockEdit', {_id:Router.current().params._id,block:'info'});
+        }
+        if (index === 1) {
+          console.log('Edit!');
+          Router.go('organizationsBlockEdit', {_id:Router.current().params._id,block:'contact'});
+        }
+        if (index === 2) {
+          console.log('Edit!');
+          Router.go('organizationsBlockEdit', {_id:Router.current().params._id,block:'description'});
+        }
+        if (index === 3) {
+          console.log('Edit!');
+          Router.go('organizationsBlockEdit', {_id:Router.current().params._id,block:'locality'});
+        }
+        if (index === 4) {
+          console.log('Edit!');
+          Router.go('organizationsBlockEdit', {_id:Router.current().params._id,block:'preferences'});
+        }
+        return true;
+      }
+    });
+  },
+  "click .action-card-projects" (e, t) {
+    const self=this;
+    e.preventDefault();
+    //info,description,contact
+    IonActionSheet.show({
+      titleText: TAPi18n.__('Actions Projects'),
+      buttons: [
+        { text: `${TAPi18n.__('edit info')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit contact')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit description')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit address')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit dates')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit privacy settings')} <i class="icon ion-edit"></i>` },
+      ],
+      cancelText: TAPi18n.__('cancel'),
+      cancel: function() {
+        console.log('Cancelled!');
+      },
+      buttonClicked: function(index) {
+        if (index === 0) {
+          console.log('Edit!');
+          Router.go('projectsBlockEdit', {_id:Router.current().params._id,block:'info'});
+        }
+        if (index === 1) {
+          console.log('Edit!');
+          Router.go('projectsBlockEdit', {_id:Router.current().params._id,block:'contact'});
+        }
+        if (index === 2) {
+          console.log('Edit!');
+          Router.go('projectsBlockEdit', {_id:Router.current().params._id,block:'description'});
+        }
+        if (index === 3) {
+          console.log('Edit!');
+          Router.go('projectsBlockEdit', {_id:Router.current().params._id,block:'locality'});
+        }
+        if (index === 4) {
+          console.log('Edit!');
+          Router.go('projectsBlockEdit', {_id:Router.current().params._id,block:'when'});
+        }
+        if (index === 5) {
+          console.log('Edit!');
+          Router.go('projectsBlockEdit', {_id:Router.current().params._id,block:'preferences'});
+        }
+        return true;
+      }
+    });
+  },
+});
+
 Template.newsList.events({
   "click .saveattendees-link" (evt) {
     evt.preventDefault();
@@ -174,8 +355,16 @@ return ;
       cordova.plugins.barcodeScanner.scan(
         function (result) {
           if(result.cancelled==false && result.text && result.format=='QR_CODE'){
-            let qr=JSON.parse(result.text);
-            //alert(qr);
+            let qr = {};
+            if (result.text.split('#').length === 2) {
+              let urlArray = result.text.split('#')[1].split('.');
+              if (urlArray && urlArray.length === 4) {
+                qr.type = urlArray[0];
+                qr._id = urlArray[3];
+              }
+            } else {
+              qr=JSON.parse(result.text);
+            }
             if(qr && qr.type && qr._id){
               if(qr.type === 'person'){
                 if(scope === 'events'){

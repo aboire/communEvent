@@ -20,7 +20,7 @@ export const encodeString = (str) => {
   return encodeURIComponent(str).replace(/\*/g, "%2A");
 };
 
-export const queryLink = (array,search) => {
+export const queryLink = (array,search,selectorga) => {
   let arrayIds = _.map(array, function(array,key){
      return new Mongo.ObjectID(key);
    });
@@ -29,6 +29,9 @@ export const queryLink = (array,search) => {
   if(Meteor.isClient){
   if(search){
     query = searchQuery(query,search);
+  }
+  if(selectorga){
+    query = selectorgaQuery(query,selectorga);
   }
 }
 return query;
@@ -45,13 +48,16 @@ export const arrayLinkType = (array,type) => {
 return arrayIds;
 };
 
-export const queryLinkType = (array,search,type) => {
+export const queryLinkType = (array,search,type,selectorga) => {
   let arrayIds = arrayLinkType(array,type);
   let query={};
   query['_id']={$in:arrayIds};
   if(Meteor.isClient){
   if(search){
     query = searchQuery(query,search);
+  }
+  if(selectorga){
+    query = selectorgaQuery(query,selectorga);
   }
 }
 return query;
@@ -69,6 +75,13 @@ if ( search.charAt( 0 ) == '#' && search.length > 1) {
   query['tags']={$regex : search.substr(1), '$options' : 'i'}
 }else{
   query['name']={$regex : search, '$options' : 'i'}
+}
+return query;
+};
+
+export const selectorgaQuery = (query,selectorga) => {
+if (selectorga) {
+  query['type']=selectorga;
 }
 return query;
 };

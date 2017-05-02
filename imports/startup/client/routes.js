@@ -38,6 +38,12 @@ Router.map(function() {
     loadingTemplate: 'loading',
   });
 
+  this.route("dashboardRedirect", {
+    path: '/dashboard',
+    template: "dashboard",
+    loadingTemplate: 'loading',
+  });
+
   this.route("listEvents", {
     path: '/events',
     template: "listEvents",
@@ -65,6 +71,36 @@ Router.map(function() {
   this.route("organizationsAdd", {
     template: "organizationsAdd",
     path: 'organizations/add',
+    loadingTemplate: 'loading'
+  });
+
+  this.route("citoyensBlockEdit", {
+    template: "citoyensBlockEdit",
+    path: '/citoyens/:_id/edit/block/:block',
+    loadingTemplate: 'loading'
+  });
+
+  this.route("eventsBlockEdit", {
+    template: "eventsBlockEdit",
+    path: '/events/:_id/edit/block/:block',
+    loadingTemplate: 'loading'
+  });
+
+  this.route("organizationsBlockEdit", {
+    template: "organizationsBlockEdit",
+    path: '/organizations/:_id/edit/block/:block',
+    loadingTemplate: 'loading'
+  });
+
+  this.route("projectsBlockEdit", {
+    template: "projectsBlockEdit",
+    path: '/projects/:_id/edit/block/:block',
+    loadingTemplate: 'loading'
+  });
+
+  this.route("citoyensEdit", {
+    template: "citoyensEdit",
+    path: 'citoyens/:_id/edit',
     loadingTemplate: 'loading'
   });
 

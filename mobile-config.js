@@ -4,8 +4,8 @@ App.info({
   description: 'communecter mobile',
   author: 'thomas',
   email: 'thomas.craipeau@gmail.com',
-  version: '0.0.1',
-  buildNumber: '101'
+  version: '0.0.2',
+  buildNumber: '102'
 });
 
 App.setPreference('android-targetSdkVersion', '23');
@@ -13,6 +13,15 @@ App.setPreference('android-minSdkVersion', '19');
 
 App.configurePlugin('phonegap-plugin-push', {
   SENDER_ID: 183063213318
+});
+
+App.configurePlugin('cordova-plugin-customurlscheme', {
+  URL_SCHEME: 'communecter'
+});
+
+App.configurePlugin('net.yoik.cordova.plugins.intentfilter', {
+ URL_SCHEME: 'https',
+ HOST_NAME: 'www.communecter.org'
 });
 
 App.icons({
@@ -56,6 +65,8 @@ App.setPreference('Orientation', 'portrait');
 App.accessRule('*');
 App.accessRule('http://*');
 App.accessRule('https://*');
+App.accessRule('http://*', { type: 'navigation' });
+App.accessRule('https://*', { type: 'navigation' });
 App.accessRule('http://qa.communecter.org/*', { type: 'navigation' });
 App.accessRule('https://qa.communecter.org/*', { type: 'navigation' });
 App.accessRule('http://www.communecter.org/*', { type: 'navigation' });

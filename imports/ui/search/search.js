@@ -4,6 +4,7 @@ import { Template } from 'meteor/templating';
 import { Router } from 'meteor/iron:router';
 import { TAPi18n } from 'meteor/tap:i18n';
 import { ReactiveDict } from 'meteor/reactive-dict';
+import { _ } from 'meteor/underscore';
 
 import './search.html';
 
@@ -84,9 +85,9 @@ Template.searchGlobal.onRendered(function () {
   });
 
   Template.searchGlobal.events({
-    'keyup #search, change #search'(event,template){
+    'keyup #search, change #search':_.throttle((event,template) => {
       if(event.currentTarget.value.length>2){
         pageSession.set( 'filter', event.currentTarget.value);
       }
-    }
+    }, 500)
   });

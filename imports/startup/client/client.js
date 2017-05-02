@@ -11,24 +11,104 @@ import { TAPi18n } from 'meteor/tap:i18n';
 import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 import { AutoForm } from 'meteor/aldeed:autoform';
 import { moment } from 'meteor/momentjs:moment';
+import { Router } from 'meteor/iron:router';
+import { DeepLink } from 'meteor/communecter:deep-link';
 
 //collections
 import { ActivityStream } from '../../api/activitystream.js';
 import { Documents } from '../../api/documents.js';
 
 //schemas
-import { SchemasEventsRest } from '../../api/events.js';
-import { SchemasOrganizationsRest } from '../../api/organizations.js';
-import { SchemasProjectsRest } from '../../api/projects.js';
+import { SchemasEventsRest,BlockEventsRest } from '../../api/events.js';
+import { SchemasOrganizationsRest,BlockOrganizationsRest } from '../../api/organizations.js';
+import { SchemasProjectsRest,BlockProjectsRest } from '../../api/projects.js';
 import { SchemasFollowRest,SchemasInviteAttendeesEventRest } from '../../api/citoyens.js';
 import { SchemasNewsRest } from '../../api/news.js';
 import { SchemasCommentsRest,SchemasCommentsEditRest } from '../../api/comments.js';
+import { SchemasCitoyensRest,BlockCitoyensRest } from '../../api/citoyens.js';
+
 
 Meteor.startup(function () {
 
   window.HTML.isConstructedObject = function(x) {
   return _.isObject(x) && !$.isPlainObject(x)
 };
+if (Meteor.isCordova && !Meteor.isDesktop) {
+
+  DeepLink.once('INTENT', function(intent){
+    console.log('INTENT');
+    console.log(intent);
+    if (intent.split('#').length === 2) {
+      console.log('SPLIT');
+      let urlArray = intent.split('#')[1].split('.');
+      if (urlArray && urlArray.length === 4) {
+        const type = urlArray[0];
+        const detail = urlArray[1];
+        const _id = urlArray[3];
+        const scope = (type === 'person') ? 'citoyens' : `${type}s`;
+        if(detail === 'detail'){
+        if(scope === 'events' || scope === 'organizations' || scope === 'projects' || scope === 'citoyens'){
+          Router.go("newsList",{scope:scope,_id:_id});
+        }
+      }
+      }
+    }
+   });
+
+  DeepLink.once('communecter', function(data, url, scheme, path, querystring){
+    console.log('communecter');
+    console.log(url);
+    console.log(scheme);
+    console.log(path);
+    console.log(querystring);
+    /*
+    communecter://
+    communecter://login
+    communecter://signin
+    communecter://sign-out
+    communecter://events
+    communecter://organizations
+    communecter://projects
+    communecter://citoyens
+    communecter://citoyens/:_id/edit
+    communecter://organizations/add
+    communecter://organizations/:_id/edit
+    communecter://projects/add
+    communecter://projects/:_id/edit
+    communecter://events/add
+    communecter://events/:_id/edit
+    communecter://events/sous/:_id
+    communecter://map/:scope/
+    communecter://map/:scope/:_id
+    communecter://:scope/news/:_id
+    communecter://:scope/directory/:_id
+    communecter://:scope/news/:_id/new/:newsId
+    communecter://:scope/news/:_id/add
+    communecter://:scope/news/:_id/edit/:newsId
+    communecter://:scope/news/:_id/new/:newsId/comment
+    communecter://:scope/news/:_id/edit/:newsId/comments/:commentId/edit
+    communecter://organizations/members/:_id
+    communecter://projects/contributors/:_id
+    communecter://events/attendees/:_id
+    communecter://citoyens/follows/:_id
+    communecter://settings
+    communecter://contact
+    communecter://citie
+    communecter://notifications
+    communecter://search
+    */
+    Router.go(`/${path}`);
+   });
+
+DeepLink.on('https', (data, url, scheme, path) => {
+console.log('HTTPS');
+console.log(url);
+console.log(scheme);
+console.log(path);
+});
+
+}
+
 
   if (Meteor.isCordova) {
     window.alert = navigator.notification.alert;
@@ -55,8 +135,6 @@ TAPi18n.setLanguage(language)
   //console.log(error_message);
 });
 
-
-
 SchemasEventsRest.i18n("schemas.eventsrest");
 SchemasOrganizationsRest.i18n("schemas.organizationsrest");
 SchemasProjectsRest.i18n("schemas.projectsrest");
@@ -65,8 +143,29 @@ SchemasInviteAttendeesEventRest.i18n("schemas.followrest");
 SchemasNewsRest.i18n("schemas.news");
 SchemasCommentsRest.i18n("schemas.comments");
 SchemasCommentsEditRest.i18n("schemas.comments");
-
-
+SchemasCitoyensRest.i18n("schemas.citoyens");
+BlockCitoyensRest.info.i18n("schemas.global");
+BlockCitoyensRest.contact.i18n("schemas.global");
+BlockCitoyensRest.description.i18n("schemas.global");
+BlockCitoyensRest.locality.i18n("schemas.global");
+BlockCitoyensRest.preferences.i18n("schemas.global");
+BlockEventsRest.info.i18n("schemas.global");
+BlockEventsRest.contact.i18n("schemas.global");
+BlockEventsRest.description.i18n("schemas.global");
+BlockEventsRest.when.i18n("schemas.global");
+BlockEventsRest.locality.i18n("schemas.global");
+BlockEventsRest.preferences.i18n("schemas.global");
+BlockOrganizationsRest.info.i18n("schemas.global");
+BlockOrganizationsRest.contact.i18n("schemas.global");
+BlockOrganizationsRest.description.i18n("schemas.global");
+BlockOrganizationsRest.locality.i18n("schemas.global");
+BlockOrganizationsRest.preferences.i18n("schemas.global");
+BlockProjectsRest.info.i18n("schemas.global");
+BlockProjectsRest.contact.i18n("schemas.global");
+BlockProjectsRest.description.i18n("schemas.global");
+BlockProjectsRest.when.i18n("schemas.global");
+BlockProjectsRest.locality.i18n("schemas.global");
+BlockProjectsRest.preferences.i18n("schemas.global");
 
 Template.registerHelper('equals',
   function(v1, v2) {
@@ -136,5 +235,6 @@ Template.registerHelper("SchemasOrganizationsRest", SchemasOrganizationsRest);
 Template.registerHelper("SchemasProjectsRest", SchemasProjectsRest);
 Template.registerHelper("SchemasCommentsRest", SchemasCommentsRest);
 Template.registerHelper("SchemasCommentsEditRest", SchemasCommentsEditRest);
+Template.registerHelper("SchemasCitoyensRest", SchemasCitoyensRest);
 
 });
