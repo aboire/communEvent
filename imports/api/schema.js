@@ -59,16 +59,10 @@ export const baseSchema = new SimpleSchema({
   shortDescription : {
     type : String,
     max: 140,
-    autoform: {
-      type: "textarea"
-    },
     optional: true
   },
   description : {
     type : String,
-    autoform: {
-      type: "textarea"
-    },
     optional: true
   },
   url : {

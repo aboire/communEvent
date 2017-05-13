@@ -18,7 +18,7 @@
     <div class="item item-divider">
       <i class="icon ion-speakerphone"></i> {{_ "notifications"}} <span class="badge badge-dark">{{notificationsCount}}</span>
     </div>
-    {{> notificationsList}}
+    {{> notificationsList notifications=notifications}}
   </div>
   {{/ionContent}}
   {{/ionView}}
@@ -41,7 +41,7 @@
   <p>
     <i class="icon fa {{notify.icon}} positive"></i> {{notify.displayName}}
   </p>
-    <p><i class="icon ion-clock"></i> {{livestamp created}}</p>
+    <p>{{livestamp created}}</p>
 </div>
 {{/if}}
 {{else}}

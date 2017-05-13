@@ -69,9 +69,9 @@ export const position = {
     getNear() {
       const radius = this.getRadius();
       const latlngArray = this.getLatlngArray();
-      if(radius && latlngArray){
+      if(radius && latlngArray){    
     return {
-      loc: {
+      geoPosition: {
         $near: {
           $geometry: {
             type: 'Point',

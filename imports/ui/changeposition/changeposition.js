@@ -1,5 +1,3 @@
-import './changeposition.html';
-
 import { Meteor } from 'meteor/meteor';
 import { Session } from 'meteor/session';
 import { Template } from 'meteor/templating';
@@ -7,9 +5,14 @@ import { Router } from 'meteor/iron:router';
 import { TAPi18n } from 'meteor/tap:i18n';
 import { ReactiveDict } from 'meteor/reactive-dict';
 import { Location } from 'meteor/djabatav:geolocation-plus';
+import { Random } from 'meteor/random';
 
 //submanager
 import { listEventsSubs,listOrganizationsSubs,listProjectsSubs,listCitoyensSubs,dashboardSubs } from '../../api/client/subsmanager.js';
+
+import { geoId } from '../../api/client/reactive.js';
+
+import './changeposition.html';
 
 let pageSession = new ReactiveDict('pageChangePosition');
 
@@ -69,11 +72,13 @@ Template.changePosition.onRendered(function () {
           updatedAt : new Date()
         });
         //clear cache
-        listEventsSubs.clear();
+        /*listEventsSubs.clear();
         listOrganizationsSubs.clear();
         listProjectsSubs.clear();
         listCitoyensSubs.clear();
-        dashboardSubs.clear();
+        dashboardSubs.clear();*/
+        const geoIdRandom = Random.id();
+        geoId.set('geoId', geoIdRandom);
         Router.go('dashboard');
     }
     });

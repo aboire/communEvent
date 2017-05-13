@@ -1,4 +1,4 @@
-<template name="searchGlobal">
+<template name="Page_search">
   {{#contentFor "headerTitle"}}
   <h1 class="title">{{_ "search"}}</h1>
   {{/contentFor}}
@@ -13,6 +13,14 @@
 
   {{#ionView}}
   {{#ionContent}}
+
+{{> searchGlobal}}
+
+  {{/ionContent}}
+  {{/ionView}}
+</template>
+
+<template name="searchGlobal">
   {{#ionList}}
   <div class="list list-inset">
     <label class="item item-input">
@@ -25,18 +33,20 @@
     <i class="icon ion-location"></i> {{_ "search"}} <span class="badge badge-dark">{{countSearchGlobal}}</span>
   </div>
   {{/if}}
+
   {{#each searchGlobal}}
   {{#if equals typeSig 'city'}}
   <a href="" class="item item-icon-left">
   <i {{icone typeSig}}></i> {{name}}
   </a>
   {{else}}
-  <a href="{{pathFor 'newsList' _id=_id scope=typeSig}}" class="item {{#if profilThumbImageUrl}}item-avatar{{else}}item-icon-left{{/if}}">
+  <a href="{{pathFor 'detailList' _id=_id scope=typeSig}}" class="item {{#if profilThumbImageUrl}}item-avatar{{else}}item-icon-left{{/if}}">
   {{#if profilThumbImageUrl}}{{> imgDoc}}{{else}}<i {{icone typeSig}}></i>{{/if}} {{name}}
   {{#if address}}<p>{{address.postalCode}} {{address.addressLocality}}</p>{{/if}}
   </a>
   {{/if}}
   {{else}}
+
   {{#ionItem}}
   {{#if filter}}
   {{_ "No found"}}
@@ -44,9 +54,7 @@
   {{_ "Enter a search term"}}
   {{/if}}
   {{/ionItem}}
+
   {{/each}}
   {{/ionList}}
-
-  {{/ionContent}}
-  {{/ionView}}
 </template>

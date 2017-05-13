@@ -20,6 +20,18 @@ export const encodeString = (str) => {
   return encodeURIComponent(str).replace(/\*/g, "%2A");
 };
 
+export const arrayAllLink = (links) => {
+let arrayIdsRetour = _.union(_.flatten(_.map(links, (array,key) => {
+  console.log(key);
+   return _.map(array, (a,k) => {
+     return k;
+   });
+ })));
+ console.log(arrayIdsRetour);
+ return arrayIdsRetour;
+ };
+
+
 export const queryLink = (array,search,selectorga) => {
   let arrayIds = _.map(array, function(array,key){
      return new Mongo.ObjectID(key);
@@ -34,6 +46,24 @@ export const queryLink = (array,search,selectorga) => {
     query = selectorgaQuery(query,selectorga);
   }
 }
+return query;
+};
+
+export const arrayLinkToBeValidated = (array) => {
+   let arrayIds = _.filter(_.map(array, function(array,key) {
+     if(array.toBeValidated === true){
+     return new Mongo.ObjectID(key);
+     }
+   }), function(array){
+      return array!==undefined;
+    });
+return arrayIds;
+};
+
+export const queryLinkToBeValidated = (array) => {
+  let arrayIds = arrayLinkToBeValidated(array);
+  let query={};
+  query['_id']={$in:arrayIds};
 return query;
 };
 
@@ -85,3 +115,38 @@ if (selectorga) {
 }
 return query;
 };
+
+if(Meteor.isClient){
+  import { Session } from 'meteor/session';
+  import { position } from './client/position.js';
+
+  export const queryGeoFilter = (query) => {
+  const radius = position.getRadius();
+  const latlngObj = position.getLatlngObject();
+  if (radius && latlngObj) {
+    const nearObj = position.getNear();
+    query['geoPosition'] = nearObj['geoPosition'];
+  }else{
+    let city = Session.get('city');
+    if(city && city.geoShape && city.geoShape.coordinates){
+      query['address.codeInsee'] = city.insee;
+    }
+  }
+  return query;
+  };
+
+export const userLanguage = () => {
+  // If the user is logged in, retrieve their saved language
+  if (Meteor.user()) return Meteor.user().profile.language;
+};
+
+export const languageBrowser = () => {
+const localeFromBrowser = window.navigator.userLanguage || window.navigator.language;
+let locale = 'en';
+
+if (localeFromBrowser.match(/en/)) locale = 'en';
+if (localeFromBrowser.match(/fr/)) locale = 'fr';
+
+return locale;
+};
+}

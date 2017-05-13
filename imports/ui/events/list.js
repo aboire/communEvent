@@ -9,8 +9,9 @@ import { Router } from 'meteor/iron:router';
 import { AutoForm } from 'meteor/aldeed:autoform';
 import { Location } from 'meteor/djabatav:geolocation-plus';
 import { Mongo } from 'meteor/mongo';
+import { Random } from 'meteor/random';
 import { HTTP } from 'meteor/http';
-import { Mapbox } from 'meteor/pauloborges:mapbox';
+import { Mapbox } from 'meteor/communecter:mapbox';
 
 
 //collections
@@ -25,9 +26,9 @@ import '../map/map.js';
 
 import './list.html';
 
-import { pageSession } from '../../api/client/reactive.js';
+import { pageSession,geoId } from '../../api/client/reactive.js';
 import { position } from '../../api/client/position.js';
-import { searchQuery } from '../../api/helpers.js';
+import { searchQuery,queryGeoFilter } from '../../api/helpers.js';
 
 Template.listEvents.onCreated(function () {
   const template = Template.instance();
@@ -74,7 +75,7 @@ Template.listEvents.onRendered(function() {
 
   const testgeo = () => {
     let geolocate = Session.get('geolocate');
-    if(!Session.get('GPSstart') && geolocate && !Location.getReactivePosition()){
+    if(!Session.get('GPSstart') && geolocate && !position.getLatlng()){
 
       IonPopup.confirm({title:TAPi18n.__('Position'),template:TAPi18n.__('Utiliser la position de votre profil'),
       onOk: function(){
@@ -85,10 +86,13 @@ Template.listEvents.onRendered(function() {
             updatedAt : new Date()
           });
           //clear cache
-          listEventsSubs.clear();
+          /*listEventsSubs.clear();
           listOrganizationsSubs.clear();
           listProjectsSubs.clear();
-          dashboardSubs.clear();
+          listCitoyensSubs.clear();
+          dashboardSubs.clear();*/
+          const geoIdRandom = Random.id();
+          geoId.set('geoId', geoIdRandom);
         }
       },
       onCancel: function(){
@@ -108,6 +112,7 @@ Template.listEvents.helpers({
     let sortEvents= pageSession.get('sortEvents');
     let searchEvents= pageSession.get('searchEvents');
     let query={};
+    query = queryGeoFilter(query);
     if(sortEvents === "Current"){
       query['startDate']={$lte : inputDate};
       query['endDate']={$gte : inputDate};
@@ -126,6 +131,7 @@ Template.listEvents.helpers({
     let sortEvents= pageSession.get('sortEvents');
     let searchEvents= pageSession.get('searchEvents');
     let query={};
+    query = queryGeoFilter(query);
     if(sortEvents === "Current"){
       query['startDate']={$lte : inputDate};
       query['endDate']={$gte : inputDate};
@@ -143,6 +149,7 @@ Template.listEvents.helpers({
     let inputDate = new Date();
     let searchEvents= pageSession.get('searchEvents');
     let query={};
+    query = queryGeoFilter(query);
     query['startDate']={$lte : inputDate};
     query['endDate']={$gte : inputDate};
     if(searchEvents){
@@ -154,6 +161,7 @@ Template.listEvents.helpers({
     let inputDate = new Date();
     let searchEvents= pageSession.get('searchEvents');
     let query={};
+    query = queryGeoFilter(query);
     query['startDate']={$gte : inputDate};
     if(searchEvents){
       query = searchQuery(query,searchEvents);
@@ -164,6 +172,7 @@ Template.listEvents.helpers({
     let inputDate = new Date();
     let searchEvents= pageSession.get('searchEvents');
     let query={};
+    query = queryGeoFilter(query);
     query['endDate']={$lte : inputDate};
     if(searchEvents){
       query = searchQuery(query,searchEvents);
@@ -183,10 +192,14 @@ Template.listEvents.helpers({
   return Template.instance().ready.get();
   },
   dataReadyAll() {
-  return Template.instance().ready.get() && Events.find({}).count() === Counts.get(`countScopeGeo.events`);
+    let query={};
+    query = queryGeoFilter(query);
+  return Template.instance().ready.get() && Events.find(query).count() === Counts.get(`countScopeGeo.events`);
   },
   dataReadyPourcentage() {
-  return  `${Events.find({}).count()}/${Counts.get('countScopeGeo.events')}`;
+    let query={};
+    query = queryGeoFilter(query);
+  return  `${Events.find(query).count()}/${Counts.get('countScopeGeo.events')}`;
   }
 });
 
@@ -219,6 +232,11 @@ Template.eventsAdd.onCreated(function () {
   pageSession.set('geoPosLongitude', null);
 
   this.autorun(function(c) {
+      Session.set('scopeId', Router.current().params._id);
+      Session.set('scope', Router.current().params.scope);
+  });
+
+  this.autorun(function(c) {
       const handleList = listsSubs.subscribe('lists','eventTypes');
       if(handleList.ready()){
         template.ready.set(handleList.ready());
@@ -238,6 +256,11 @@ Template.eventsEdit.onCreated(function () {
   pageSession.set('depName', null);
   pageSession.set('geoPosLatitude', null);
   pageSession.set('geoPosLongitude', null);
+
+  this.autorun(function(c) {
+      Session.set('scopeId', Router.current().params._id);
+      Session.set('scope', Router.current().params.scope);
+  });
 
   this.autorun(function(c) {
       const handleList = listsSubs.subscribe('lists','eventTypes');
@@ -343,7 +366,7 @@ Template.eventsBlockEdit.helpers({
     let event = Events.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
     let eventEdit = {};
     eventEdit._id = event._id._str;
-    if(Router.current().params.block === 'description'){
+    if(Router.current().params.block === 'descriptions'){
       eventEdit.description = event.description;
       eventEdit.shortDescription = event.shortDescription;
     }else if(Router.current().params.block === 'info'){
@@ -352,7 +375,6 @@ Template.eventsBlockEdit.helpers({
       if(event.tags){
         eventEdit.tags = event.tags;
       }
-    }else if(Router.current().params.block === 'contact'){
       eventEdit.email = event.email;
       eventEdit.url = event.url;
       if(event.telephone){
@@ -366,6 +388,28 @@ Template.eventsBlockEdit.helpers({
           eventEdit.fax = event.telephone.fax.join();
         }
       }
+    }else if(Router.current().params.block === 'network'){
+      if(event.socialNetwork){
+        if(event.socialNetwork.instagram){
+        eventEdit.instagram = event.socialNetwork.instagram;
+      }
+      if(event.socialNetwork.skype){
+        eventEdit.skype = event.socialNetwork.skype;
+      }
+      if(event.socialNetwork.googleplus){
+        eventEdit.gpplus = event.socialNetwork.googleplus;
+      }
+      if(event.socialNetwork.github){
+        eventEdit.github = event.socialNetwork.github;
+      }
+      if(event.socialNetwork.twitter){
+        eventEdit.twitter = event.socialNetwork.twitter;
+      }
+      if(event.socialNetwork.facebook){
+        eventEdit.facebook = event.socialNetwork.facebook;
+      }
+      }
+
     }else if(Router.current().params.block === 'when'){
       eventEdit.allDay = event.allDay;
       eventEdit.startDate = event.startDate;
@@ -485,10 +529,9 @@ Template.eventsFields.onRendered(function() {
   if(geolocate && Router.current().route.getName()!="eventsEdit" && Router.current().route.getName()!="eventsBlockEdit"){
     var onOk=IonPopup.confirm({template:TAPi18n.__('Utiliser votre position actuelle ?'),
     onOk: function(){
-      let geo = Location.getReactivePosition();
-      if(geo && geo.latitude){
-        let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-        Meteor.call('getcitiesbylatlng',latlng,function(error, result){
+      const latlngObj = position.getLatlngObject();
+      if (latlngObj) {
+        Meteor.call('getcitiesbylatlng',latlngObj,function(error, result){
           if(result){
             //console.log(result);
             pageSession.set('postalCode', result.postalCodes[0].postalCode);
@@ -602,13 +645,30 @@ AutoForm.addHooks(['addEvent', 'editEvent'], {
   after: {
     method : function(error, result) {
       if (!error) {
-        Router.go('newsList', {_id:result.data.id,scope:'events'});
+        Router.go('detailList', {_id:result.data.id,scope:'events'});
       }
     },
     "method-update" : function(error, result) {
       if (!error) {
-        Router.go('newsList', {_id:result.data.id,scope:'events'});
+        Router.go('detailList', {_id:result.data.id,scope:'events'});
       }
+    }
+  },
+  before: {
+    method : function(doc, template) {
+      //console.log(doc);
+      let scope = Session.get('scope');
+      let scopeId = Session.get('scopeId');
+      doc.organizerType = scope;
+      doc.organizerId = scopeId;
+      return doc;
+    },
+    "method-update" : function(modifier, documentId) {
+      let scope = Session.get('scope');
+      let scopeId = Session.get('scopeId');
+      modifier["$set"].organizerType = scope;
+      modifier["$set"].organizerId = scopeId;
+      return modifier;
     }
   },
   onError: function(formType, error) {
@@ -632,7 +692,7 @@ AutoForm.addHooks(['editBlockEvent'], {
     "method-update" : function(error, result) {
       if (!error) {
         if(Session.get('block')!=='preferences'){
-        Router.go('newsList', {_id:Session.get('scopeId'),scope:'events'});
+        Router.go('detailList', {_id:Session.get('scopeId'),scope:'events'});
       }
       }
     }

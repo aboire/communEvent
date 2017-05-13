@@ -37,7 +37,7 @@ Template.newsDetailComments.onCreated(function () {
 
   this.autorun(function(c) {
       const handle = singleSubs.subscribe('scopeDetail',Router.current().params.scope,Router.current().params._id);
-      const handleScopeDetail = singleSubs.subscribe('newsDetailComments', Router.current().params.newsId);
+      const handleScopeDetail = singleSubs.subscribe('newsDetailComments', Router.current().params.scope,Router.current().params._id,Router.current().params.newsId);
       if(handle.ready() && handleScopeDetail.ready()){
         template.ready.set(handle.ready());
       }

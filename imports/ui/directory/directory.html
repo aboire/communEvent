@@ -15,7 +15,7 @@
   {{#ionView}}
   {{#ionContent}}
 
-  {{> Template.dynamic template=scopeDirectoryTemplate data=scope}}
+  {{> Template.dynamic template="Directory_view" data=scope}}
 
   {{/ionContent}}
   {{/ionView}}
@@ -24,25 +24,52 @@
 {{/if}}
 </template>
 
-<template name="listDirectorycitoyens">
-  <div class="list list-inset">
-    <label class="item item-input">
-      <i class="icon ion-search placeholder-icon"></i>
-      <input id="search" type="text" placeholder="{{_ "Search..."}}" value="{{search}}">
-    </label>
-    <div class="button-bar button-small">
-      <a class="button button-dark all"><i class="icon fa fa-th-list {{#if equals view 'all'}}positive{{/if}}"></i></a>
-      <a class="button button-person follows"><i class="icon fa fa-user {{#if equals view 'follows'}}positive{{/if}}"></i></a>
-      <a class="button button-organization memberof"><i class="icon fa fa-users {{#if equals view 'memberof'}}positive{{/if}}"></i></a>
-      <a class="button button-event events"><i class="icon fa fa-calendar {{#if equals view 'events'}}positive{{/if}}"></i></a>
-      <a class="button button-project projects"><i class="icon fa fa-lightbulb-o {{#if equals view 'projects'}}positive{{/if}}"></i></a>
-      <a class="button button-follower followers"><i class="icon fa fa-heart {{#if equals view 'followers'}}positive{{/if}}"></i></a>
-    </div>
+<template name="Directory_search">
+  <label class="item item-input">
+    <i class="icon ion-search placeholder-icon"></i>
+    <input id="search" type="text" placeholder="{{_ "Search..."}}" value="{{search}}">
+  </label>
+</template>
+
+<template name="Directory_button_bar">
+  <div class="button-bar button-positive">
+    {{> Button_toggle condition=(equals view 'all') classOff="button button-small button-dark all" classOn="button button-small button-dark all activated" iconOff="icon fa fa-th-list" iconOn="icon fa fa-th-list positive"}}
+    {{#if equals scopeVar 'citoyens'}}
+    {{> Button_toggle condition=(equals view 'follows') classOff="button button-small button-person follows" classOn="button button-small button-person follows activated" iconOff="icon fa fa-user" iconOn="icon fa fa-user positive"}}
+    {{> Button_toggle condition=(equals view 'memberof') classOff="button button-small button-organization memberof" classOn="button button-small button-organization memberof activated" iconOff="icon fa fa-users" iconOn="icon fa fa-users positive"}}
+    {{> Button_toggle condition=(equals view 'projects') classOff="button button-small button-project projects" classOn="button button-small button-project projects activated" iconOff="icon fa fa-lightbulb-o" iconOn="icon fa fa-lightbulb-o positive"}}
+    {{/if}}
+    {{#if equals scopeVar 'organizations'}}
+    {{> Button_toggle condition=(equals view 'members') classOff="button button-small button-person members" classOn="button button-small button-person members activated" iconOff="icon fa fa-user" iconOn="icon fa fa-user positive"}}
+    {{> Button_toggle condition=(equals view 'membersorganizations') classOff="button button-small button-organization membersorganizations" classOn="button button-small button-organization membersorganizations activated" iconOff="icon fa fa-users" iconOn="icon fa fa-users positive"}}
+    {{> Button_toggle condition=(equals view 'projects') classOff="button button-small button-project projects" classOn="button button-small button-project projects activated" iconOff="icon fa fa-lightbulb-o" iconOn="icon fa fa-lightbulb-o positive"}}
+    {{/if}}
+    {{#if equals scopeVar 'projects'}}
+    {{> Button_toggle condition=(equals view 'contributors') classOff="button button-small button-person contributors" classOn="button button-small button-person contributors activated" iconOff="icon fa fa-user" iconOn="icon fa fa-user positive"}}
+    {{/if}}
+    {{> Button_toggle condition=(equals view 'events') classOff="button button-small button-event events" classOn="button button-small button-event events activated" iconOff="icon fa fa-calendar" iconOn="icon fa fa-calendar positive"}}
+    {{> Button_toggle condition=(equals view 'followers') classOff="button button-small button-follower followers" classOn="button button-small button-follower followers activated" iconOff="icon fa fa-heart" iconOn="icon fa fa-heart positive"}}
   </div>
+</template>
+
+<template name="Directory_view">
+  <div class="list">
+  {{> Directory_search}}
+  {{> Directory_button_bar}}
   {{#if equals view 'all'}}
+  {{#if equals scopeVar 'citoyens'}}
   {{> listDirectoryFollows}}
   {{> listDirectoryMemberOf}}
   {{> listDirectoryProjects}}
+  {{/if}}
+  {{#if equals scopeVar 'organizations'}}
+  {{> listDirectoryMembers}}
+  {{> listDirectoryMembersOrganizations}}
+  {{> listDirectoryProjects}}
+  {{/if}}
+  {{#if equals scopeVar 'projects'}}
+  {{> listDirectoryContributors}}
+  {{/if}}
   {{> listDirectoryEvents}}
   {{> listDirectoryFollowers}}
   {{else}}
@@ -52,46 +79,15 @@
   {{#if equals view 'memberof'}}
   {{> listDirectoryMemberOf}}
   {{/if}}
-  {{#if equals view 'projects'}}
-  {{> listDirectoryProjects}}
-  {{/if}}
-  {{#if equals view 'events'}}
-  {{> listDirectoryEvents}}
-  {{/if}}
-  {{#if equals view 'followers'}}
-  {{> listDirectoryFollowers}}
-  {{/if}}
-  {{/if}}
-</template>
-
-<template name="listDirectoryorganizations">
-  <div class="list list-inset">
-    <label class="item item-input">
-      <i class="icon ion-search placeholder-icon"></i>
-      <input id="search" type="text" placeholder="{{_ "Search..."}}" value="{{search}}">
-    </label>
-    <div class="button-bar button-small">
-      <a class="button button-dark all"><i class="icon fa fa-th-list {{#if equals view 'all'}}positive{{/if}}"></i></a>
-      <a class="button button-person members"><i class="icon fa fa-user {{#if equals view 'members'}}positive{{/if}}"></i></a>
-      <a class="button button-organization membersorganizations"><i class="icon fa fa-users {{#if equals view 'membersorganizations'}}positive{{/if}}"></i></a>
-      <a class="button button-event events"><i class="icon fa fa-calendar {{#if equals view 'events'}}positive{{/if}}"></i></a>
-      <a class="button button-project projects"><i class="icon fa fa-lightbulb-o {{#if equals view 'projects'}}positive{{/if}}"></i></a>
-      <a class="button button-follower followers"><i class="icon fa fa-heart {{#if equals view 'followers'}}positive{{/if}}"></i></a>
-    </div>
-  </div>
-  {{#if equals view 'all'}}
-  {{> listDirectoryMembers}}
-  {{> listDirectoryMembersOrganizations}}
-  {{> listDirectoryProjects}}
-  {{> listDirectoryEvents}}
-  {{> listDirectoryFollowers}}
-  {{else}}
   {{#if equals view 'members'}}
   {{> listDirectoryMembers}}
   {{/if}}
   {{#if equals view 'membersorganizations'}}
   {{> listDirectoryMembersOrganizations}}
   {{/if}}
+  {{#if equals view 'contributors'}}
+    {{> listDirectoryContributors}}
+  {{/if}}
   {{#if equals view 'projects'}}
   {{> listDirectoryProjects}}
   {{/if}}
@@ -102,284 +98,87 @@
   {{> listDirectoryFollowers}}
   {{/if}}
   {{/if}}
-</template>
-
-<template name="listDirectoryprojects">
-  <div class="list list-inset">
-    <label class="item item-input">
-      <i class="icon ion-search placeholder-icon"></i>
-      <input id="search" type="text" placeholder="{{_ "Search..."}}" value="{{search}}">
-    </label>
-    <div class="button-bar button-small">
-      <a class="button button-dark all"><i class="icon fa fa-th-list {{#if equals view 'all'}}positive{{/if}}"></i></a>
-      <a class="button button-person contributors"><i class="icon fa fa-user {{#if equals view 'contributors'}}positive{{/if}}"></i></a>
-      <a class="button button-event events"><i class="icon fa fa-calendar {{#if equals view 'events'}}positive{{/if}}"></i></a>
-      <a class="button button-follower followers"><i class="icon fa fa-heart {{#if equals view 'followers'}}positive{{/if}}"></i></a>
-    </div>
   </div>
-  {{#if equals view 'all'}}
-  {{> listDirectoryContributors}}
-  {{> listDirectoryEvents}}
-  {{> listDirectoryFollowers}}
-  {{else}}
-  {{#if equals view 'contributors'}}
-    {{> listDirectoryContributors}}
-  {{/if}}
-  {{#if equals view 'events'}}
-  {{> listDirectoryEvents}}
-  {{/if}}
-  {{#if equals view 'followers'}}
-  {{> listDirectoryFollowers}}
-  {{/if}}
-  {{/if}}
 </template>
 
 <template name="listDirectoryContributors">
   {{#if countContributors search}}
-  <div class="padding">
-    <div class="list">
       <div class="item item-divider">
         <i class="icon ion-ios-people"></i> {{_ "contributors"}} <span class="badge badge-dark">{{countContributors search}}</span>
       </div>
-      {{#transition in="zoomIn" out="bounceOut"}}
-      {{#each listContributors search}}
-      <div class="item item-avatar item-button-right animated out">
-        {{> imgDoc}}
-        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='citoyens'}}" class="dark">{{name}}</a></h2>
-        {{#if isContributors}}
-        <button class="button button-positive unfollowperson-link">
-          <i class="icon fa fa-unlink"></i>
-        </button>
-        {{else}}
-        <button class="button button-dark followperson-link">
-          <i class="icon fa fa-link"></i>
-        </button>
-        {{/if}}
-      </div>
-      {{/each}}
-      {{/transition}}
-    </div>
-  </div>
+      {{> Directory_list list=(listContributors search) isConnect="isFollowersMe" person=true scope="citoyens"}}
   {{/if}}
 </template>
 
 <template name="listDirectoryFollows">
   {{#if countFollows search}}
-  <div class="padding">
-    <div class="list">
       <div class="item item-divider">
         <i class="icon ion-ios-people"></i> {{_ "follows"}} <span class="badge badge-dark">{{countFollows search}}</span>
       </div>
-      {{#transition in="zoomIn" out="bounceOut"}}
-      {{#each listFollows search}}
-      <div class="item item-avatar item-button-right animated out">
-        {{> imgDoc}}
-        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='citoyens'}}" class="dark">{{name}}</a></h2>
-        {{#if isFollowersMe}}
-        <button class="button button-positive unfollowperson-link">
-          <i class="icon fa fa-unlink"></i>
-        </button>
-        {{else}}
-        <button class="button button-dark followperson-link">
-          <i class="icon fa fa-link"></i>
-        </button>
-        {{/if}}
-      </div>
-      {{/each}}
-      {{/transition}}
-    </div>
-  </div>
+      {{> Directory_list list=(listFollows search) isConnect="isFollowersMe" person=true scope="citoyens"}}
   {{/if}}
 </template>
 
 <template name="listDirectoryFollowers">
   {{#if countFollowers search}}
-  <div class="padding">
-    <div class="list">
       <div class="item item-divider">
         <i class="icon ion-ios-heart"></i> {{_ "favorites"}} <span class="badge badge-dark">{{countFollowers search}}</span>
       </div>
-      {{#transition in="zoomIn" out="bounceOut"}}
-      {{#each listFollowers search}}
-      <div class="item item-avatar item-button-right animated out">
-        {{> imgDoc}}
-        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='citoyens'}}" class="dark">{{name}}</a></h2>
-        {{#if isFollowsMe}}
-        <button class="button button-positive unfollowperson-link">
-          <i class="icon fa fa-unlink"></i>
-        </button>
-        {{else}}
-        <button class="button button-dark followperson-link">
-          <i class="icon fa fa-link"></i>
-        </button>
-        {{/if}}
-      </div>
-      {{/each}}
-      {{/transition}}
-    </div>
-  </div>
+      {{> Directory_list list=(listFollowers search) isConnect="isFollowersMe" person=true scope="citoyens"}}
   {{/if}}
 </template>
 
-
 <template name="listDirectoryMemberOf">
   {{#if countMemberOf search ''}}
-  <div class="padding">
-    <div class="list">
       <div class="item item-divider">
         <i class="icon ion-ios-people"></i> {{_ "organizations"}} <span class="badge badge-dark">{{countMemberOf search selectorga}}</span>
       </div>
       <div class="button-bar button-small">
       {{#each listOrganisationTypes}}
-        <a class="button {{#if equals selectorga value}}button-dark{{else}}button-positive{{/if}} selectorga" id="{{value}}" data-id="{{value}}">{{label}}</a>
+        <a class="button button-small {{#if equals selectorga value}}button-positive activated{{else}}button-positive{{/if}} selectorga" id="{{value}}" data-id="{{value}}">{{label}}</a>
       {{/each}}
       </div>
-      {{#transition in="zoomIn" out="bounceOut"}}
-      {{#each listMemberOf search selectorga}}
-      <div class="item item-avatar item-button-right animated out">
-        {{> imgDoc}}
-        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='organizations'}}" class="dark">{{name}}</a></h2>
-        {{typeValue}} {{#if isAdmin}}<span class="positive"><i class="icon fa fa-circle"></i></span>{{/if}}
-        {{#if isMembers}}
-        <button class="button button-positive disconnectscope-link">
-          <i class="icon fa fa-unlink"></i>
-        </button>
-        {{else}}
-        <button class="button button-dark connectscope-link">
-          <i class="icon fa fa-link"></i>
-        </button>
-        {{/if}}
-      </div>
-      {{/each}}
-      {{/transition}}
-    </div>
-  </div>
+      {{> Directory_list list=(listMemberOf search selectorga) isConnect="isMembers" person=false scope="organizations"}}
   {{/if}}
 </template>
 
 <template name="listDirectoryMembers">
   {{#if countMembers search}}
-  <div class="padding">
-    <div class="list">
       <div class="item item-divider">
         <i class="icon ion-ios-people"></i> {{_ "members"}} <span class="badge badge-dark">{{countMembers search}}</span>
       </div>
-      {{#transition in="zoomIn" out="bounceOut"}}
-      {{#each listMembers search}}
-      <div class="item item-avatar item-button-right animated out">
-        {{> imgDoc}}
-        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='citoyens'}}" class="dark">{{name}}</a></h2>
-        {{#if isMembers}}
-        <button class="button button-positive unfollowperson-link">
-          <i class="icon fa fa-unlink"></i>
-        </button>
-        {{else}}
-        <button class="button button-dark followperson-link">
-          <i class="icon fa fa-link"></i>
-        </button>
-        {{/if}}
-      </div>
-      {{/each}}
-      {{/transition}}
-    </div>
-  </div>
+      {{> Directory_list list=(listMembers search) isConnect="isFollowersMe" person=true scope="citoyens"}}
   {{/if}}
 </template>
 
 <template name="listDirectoryMembersOrganizations">
   {{#if countMembersOrganizations search ''}}
-  <div class="padding">
-    <div class="list">
       <div class="item item-divider">
         <i class="icon ion-ios-people"></i> {{_ "organizations"}} <span class="badge badge-dark">{{countMembersOrganizations search selectorga}}</span>
       </div>
       <div class="button-bar button-small">
       {{#each listOrganisationTypes}}
-        <a class="button {{#if equals selectorga value}}button-dark{{else}}button-positive{{/if}} selectorga" id="{{value}}" data-id="{{value}}">{{label}}</a>
+        <a class="button button-small {{#if equals selectorga value}}button-positive activated{{else}}button-positive{{/if}} selectorga" id="{{value}}" data-id="{{value}}">{{label}}</a>
       {{/each}}
       </div>
-      {{#transition in="zoomIn" out="bounceOut"}}
-      {{#each listMembersOrganizations search selectorga}}
-      <div class="item item-avatar item-button-right animated out">
-        {{> imgDoc}}
-        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='organizations'}}" class="dark">{{name}}</a></h2>
-        {{typeValue}} {{#if isAdmin}}<span class="positive"><i class="icon fa fa-circle"></i></span>{{/if}}
-        {{#if isMembers}}
-        <button class="button button-positive disconnectscope-link">
-          <i class="icon fa fa-unlink"></i>
-        </button>
-        {{else}}
-        <button class="button button-dark connectscope-link">
-          <i class="icon fa fa-link"></i>
-        </button>
-        {{/if}}
-      </div>
-      {{/each}}
-      {{/transition}}
-    </div>
-  </div>
+      {{> Directory_list list=(listMembersOrganizations search selectorga) isConnect="isMembers" person=false scope="organizations"}}
   {{/if}}
 </template>
 
 <template name="listDirectoryProjects">
   {{#if countProjects search}}
-  <div class="padding">
-    <div class="list">
       <div class="item item-divider">
-        <i class="icon ion-ios-people"></i> {{_ "projects"}} <span class="badge badge-dark">{{countProjects search}}</span>
+        <i class="icon fa fa-lightbulb-o"></i> {{_ "projects"}} <span class="badge badge-dark">{{countProjects search}}</span>
       </div>
-      {{#transition in="zoomIn" out="bounceOut"}}
-      {{#each listProjects search}}
-      <div class="item item-avatar item-button-right animated out">
-        {{> imgDoc}}
-        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='projects'}}" class="dark">{{name}}</a></h2>
-        {{#if isAdmin}}<span class="positive"><i class="icon fa fa-circle"></i></span>{{/if}}
-        <button class="button button-positive disconnectscope-link">
-          <i class="icon fa fa-unlink"></i>
-        </button>
-        {{#if isContributors}}
-        <button class="button button-positive disconnectscope-link">
-          <i class="icon fa fa-unlink"></i>
-        </button>
-        {{else}}
-        <button class="button button-dark connectscope-link">
-          <i class="icon fa fa-link"></i>
-        </button>
-        {{/if}}
-      </div>
-      {{/each}}
-      {{/transition}}
-    </div>
-  </div>
+      {{> Directory_list list=(listProjects search) isConnect="isContributors" person=false scope="projects"}}
   {{/if}}
 </template>
 
 <template name="listDirectoryEvents">
   {{#if countEvents search}}
-  <div class="padding">
-    <div class="list">
       <div class="item item-divider">
         <i class="icon ion-ios-people"></i> {{_ "events"}} <span class="badge badge-dark">{{countEvents search}}</span>
       </div>
-      {{#transition in="zoomIn" out="bounceOut"}}
-      {{#each listEvents search}}
-      <div class="item item-avatar item-button-right animated out">
-        {{> imgDoc}}
-        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='events'}}" class="dark">{{name}}</a></h2>
-        {{typeValue}} {{#if isAdmin}}<span class="positive"><i class="icon fa fa-circle"></i></span>{{/if}}
-        {{#if isAttendees}}
-        <button class="button button-positive disconnectscope-link">
-          <i class="icon fa fa-unlink"></i>
-        </button>
-        {{else}}
-        <button class="button button-dark connectscope-link">
-          <i class="icon fa fa-link"></i>
-        </button>
-        {{/if}}
-      </div>
-      {{/each}}
-      {{/transition}}
-    </div>
-  </div>
+      {{> Directory_list list=(listEvents search) isConnect="isAttendees" person=false scope="events"}}
   {{/if}}
 </template>

@@ -110,9 +110,15 @@ Router.map(function() {
     loadingTemplate: 'loading'
   });
 
-  this.route("projectsAdd", {
+  /*this.route("projectsAdd", {
     template: "projectsAdd",
     path: 'projects/add',
+    loadingTemplate: 'loading'
+  });*/
+
+  this.route("projectsAdd", {
+    template: "projectsAdd",
+    path: ':scope/projects/:_id/add',
     loadingTemplate: 'loading'
   });
 
@@ -134,9 +140,15 @@ Router.map(function() {
     path: '/map/:scope/:_id'
   });
 
-  this.route("eventsAdd", {
+  /*this.route("eventsAdd", {
     template: "eventsAdd",
     path: 'events/add',
+    loadingTemplate: 'loading'
+  });*/
+
+  this.route("eventsAdd", {
+    template: "eventsAdd",
+    path: ':scope/events/:_id/add',
     loadingTemplate: 'loading'
   });
 
@@ -146,9 +158,21 @@ Router.map(function() {
     loadingTemplate: 'loading'
   });
 
+  this.route("detailList", {
+    template: "newsList",
+    path: ':scope/detail/:_id',
+    loadingTemplate: 'loading'
+  });
+
   this.route("newsList", {
     template: "newsList",
     path: ':scope/news/:_id',
+    loadingTemplate: 'loading'
+  });
+
+  this.route("notificationsList", {
+    template: "newsList",
+    path: ':scope/notifications/:_id',
     loadingTemplate: 'loading'
   });
 
@@ -240,7 +264,7 @@ Router.map(function() {
   });
 
   this.route('searchGlobal', {
-    template: "searchGlobal",
+    template: "Page_search",
     path: '/search',
     loadingTemplate: 'loading'
   });

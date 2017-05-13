@@ -9,14 +9,14 @@ import { Router } from 'meteor/iron:router';
 import { AutoForm } from 'meteor/aldeed:autoform';
 import { Location } from 'meteor/djabatav:geolocation-plus';
 import { Mongo } from 'meteor/mongo';
+import { Random } from 'meteor/random';
 import { HTTP } from 'meteor/http';
-import { Mapbox } from 'meteor/pauloborges:mapbox';
+import { Mapbox } from 'meteor/communecter:mapbox';
 
 
 //collections
 import { Citoyens } from '../../api/citoyens.js';
 import { Projects,BlockProjectsRest } from '../../api/projects.js';
-import { NotificationHistory } from '../../api/notification_history.js';
 import { Cities } from '../../api/cities.js';
 
 //submanager
@@ -26,9 +26,10 @@ import '../map/map.js';
 
 import './list.html';
 
-import { pageSession } from '../../api/client/reactive.js';
+import { pageSession,geoId } from '../../api/client/reactive.js';
 import { position } from '../../api/client/position.js';
-import { searchQuery } from '../../api/helpers.js';
+import { searchQuery,queryGeoFilter } from '../../api/helpers.js';
+
 
 Template.listProjects.onCreated(function () {
   var self = this;
@@ -76,7 +77,7 @@ Template.listProjects.onRendered(function() {
 
   const testgeo = () => {
     let geolocate = Session.get('geolocate');
-    if(!Session.get('GPSstart') && geolocate && !Location.getReactivePosition()){
+    if(!Session.get('GPSstart') && geolocate && !position.getLatlng()){
 
       IonPopup.confirm({title:TAPi18n.__('Position'),template:TAPi18n.__('Utiliser la position de votre profil'),
       onOk: function(){
@@ -87,11 +88,13 @@ Template.listProjects.onRendered(function() {
             updatedAt : new Date()
           });
           //clear cache
-          listEventsSubs.clear();
+          /*listEventsSubs.clear();
           listOrganizationsSubs.clear();
           listProjectsSubs.clear();
           listCitoyensSubs.clear();
-          dashboardSubs.clear();
+          dashboardSubs.clear();*/
+          const geoIdRandom = Random.id();
+          geoId.set('geoId', geoIdRandom);
         }
       },
       onCancel: function(){
@@ -110,6 +113,7 @@ Template.listProjects.helpers({
     let inputDate = new Date();
     let searchProjects= pageSession.get('searchProjects');
     let query={};
+    query = queryGeoFilter(query);
     if(searchProjects){
       query = searchQuery(query,searchProjects);
     }
@@ -119,6 +123,7 @@ Template.listProjects.helpers({
     let inputDate = new Date();
     let searchProjects= pageSession.get('searchProjects');
     let query={};
+    query = queryGeoFilter(query);
     if(searchProjects){
       query = searchQuery(query,searchProjects);
     }
@@ -134,10 +139,14 @@ Template.listProjects.helpers({
   return Template.instance().ready.get();
 },
 dataReadyAll() {
-return Template.instance().ready.get() && Projects.find({}).count() === Counts.get(`countScopeGeo.projects`);
+  let query={};
+  query = queryGeoFilter(query);
+return Template.instance().ready.get() && Projects.find(query).count() === Counts.get(`countScopeGeo.projects`);
 },
 dataReadyPourcentage() {
-return  `${Projects.find({}).count()}/${Counts.get('countScopeGeo.projects')}`;
+  let query={};
+  query = queryGeoFilter(query);
+return  `${Projects.find(query).count()}/${Counts.get('countScopeGeo.projects')}`;
 }
 });
 
@@ -164,6 +173,12 @@ Template.projectsAdd.onCreated(function () {
   pageSession.set('depName', null);
   pageSession.set('geoPosLatitude', null);
   pageSession.set('geoPosLongitude', null);
+
+  this.autorun(function() {
+    Session.set('scopeId', Router.current().params._id);
+    Session.set('scope', Router.current().params.scope);
+  });
+
 });
 
 Template.projectsEdit.onCreated(function () {
@@ -178,6 +193,11 @@ Template.projectsEdit.onCreated(function () {
   pageSession.set('depName', null);
   pageSession.set('geoPosLatitude', null);
   pageSession.set('geoPosLongitude', null);
+
+  this.autorun(function() {
+    Session.set('scopeId', Router.current().params._id);
+    Session.set('scope', Router.current().params.scope);
+  });
 
   this.autorun(function(c) {
       const handle = Meteor.subscribe('scopeDetail','projects',Router.current().params._id);
@@ -274,7 +294,7 @@ Template.projectsBlockEdit.helpers({
     let project = Projects.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
     let projectEdit = {};
     projectEdit._id = project._id._str;
-    if(Router.current().params.block === 'description'){
+    if(Router.current().params.block === 'descriptions'){
       projectEdit.description = project.description;
       projectEdit.shortDescription = project.shortDescription;
     }else if(Router.current().params.block === 'info'){
@@ -285,7 +305,6 @@ Template.projectsBlockEdit.helpers({
       if(project.properties && project.properties.avancement){
         projectEdit.avancement = project.properties.avancement;
       }
-    }else if(Router.current().params.block === 'contact'){
       projectEdit.email = project.email;
       projectEdit.url = project.url;
       if(project.telephone){
@@ -299,6 +318,29 @@ Template.projectsBlockEdit.helpers({
           projectEdit.fax = project.telephone.fax.join();
         }
       }
+    }else if(Router.current().params.block === 'network'){
+      if(project.socialNetwork){
+        if(project.socialNetwork.instagram){
+        projectEdit.instagram = project.socialNetwork.instagram;
+      }
+      if(project.socialNetwork.skype){
+        projectEdit.skype = project.socialNetwork.skype;
+      }
+      if(project.socialNetwork.googleplus){
+        projectEdit.gpplus = project.socialNetwork.googleplus;
+      }
+      if(project.socialNetwork.github){
+        projectEdit.github = project.socialNetwork.github;
+      }
+      if(project.socialNetwork.twitter){
+        projectEdit.twitter = project.socialNetwork.twitter;
+      }
+      if(project.socialNetwork.facebook){
+        projectEdit.facebook = project.socialNetwork.facebook;
+      }
+      }
+
+
     }else if(Router.current().params.block === 'when'){
       projectEdit.startDate = project.startDate;
       projectEdit.endDate = project.endDate;
@@ -415,10 +457,9 @@ Template.projectsFields.onRendered(function() {
   if(geolocate && Router.current().route.getName()!="projectsEdit" && Router.current().route.getName()!="projectsBlockEdit"){
     var onOk=IonPopup.confirm({template:TAPi18n.__('Utiliser votre position actuelle ?'),
     onOk: function(){
-      let geo = Location.getReactivePosition();
-      if(geo && geo.latitude){
-        let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-        Meteor.call('getcitiesbylatlng',latlng,function(error, result){
+      const latlngObj = position.getLatlngObject();
+      if (latlngObj) {
+        Meteor.call('getcitiesbylatlng',latlngObj,function(error, result){
           if(result){
             //console.log(result);
             pageSession.set('postalCode', result.postalCodes[0].postalCode);
@@ -532,13 +573,30 @@ AutoForm.addHooks(['addProject', 'editProject'], {
   after: {
     method : function(error, result) {
       if (!error) {
-        Router.go('newsList', {_id:result.data.id,scope:'projects'});
+        Router.go('detailList', {_id:result.data.id,scope:'projects'});
       }
     },
     "method-update" : function(error, result) {
       if (!error) {
-        Router.go('newsList', {_id:result.data.id,scope:'projects'});
+        Router.go('detailList', {_id:result.data.id,scope:'projects'});
       }
+    }
+  },
+  before: {
+    method : function(doc, template) {
+      //console.log(doc);
+      let scope = Session.get('scope');
+      let scopeId = Session.get('scopeId');
+      doc.parentType = scope;
+      doc.parentId = scopeId;
+      return doc;
+    },
+    "method-update" : function(modifier, documentId) {
+      let scope = Session.get('scope');
+      let scopeId = Session.get('scopeId');
+      modifier["$set"].parentType = scope;
+      modifier["$set"].parentId = scopeId;
+      return modifier;
     }
   },
   onError: function(formType, error) {
@@ -572,7 +630,7 @@ AutoForm.addHooks(['editBlockProject'], {
     "method-update" : function(error, result) {
       if (!error) {
         if(Session.get('block')!=='preferences'){
-        Router.go('newsList', {_id:Session.get('scopeId'),scope:'projects'});
+        Router.go('detailList', {_id:Session.get('scopeId'),scope:'projects'});
       }
       }
     }

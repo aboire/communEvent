@@ -14,8 +14,12 @@
 
   {{#contentFor "headerButtonRight"}}
 
-  <button class="button button-clear icon ion-android-notifications brand-base-text-color pull-right" data-ion-menu-toggle="right">
-   {{#if notificationsCount}}<div class="new-notification-bubble">{{notificationsCount}}</div>{{/if}}
+  <button class="button button-clear icon ion-android-notifications brand-base-text-color pull-right all-seen" data-ion-menu-toggle="right">
+    {{#transition in="bounceInDown" out="bounceOutUp"}}
+    {{#if notificationsCount}}
+    <div class="new-notification-bubble animated out">{{notificationsCount}}</div>
+    {{/if}}
+    {{/transition}}
   </button>
 
   {{/contentFor}}
@@ -28,11 +32,6 @@
       <i class="icon ion-search placeholder-icon"></i>
       <input id="search" type="text" placeholder="{{_ "searchPlaceholder"}}" value="{{searchProjects}}">
     </label>
-    {{#if dataReady}}
-    <div class="button-bar bar-positive">
-      <a class="button" href="{{pathFor 'projectsAdd'}}">{{_ "Add project"}} {{> ionIcon icon="android-add-circle"}}</a>
-    </div>
-    {{/if}}
   </div>
 
     <div class="list list-inset">
@@ -43,7 +42,7 @@
       {{#if dataReady}}
       {{#transition in="zoomIn" out="bounceOut"}}
       {{#each projects}}
-      <a class="item {{#if profilThumbImageUrl}}item-thumbnail-left{{/if}} animated in" href="{{pathFor 'newsList' _id=this._id._str scope="projects"}}">
+      <a class="item {{#if profilThumbImageUrl}}item-thumbnail-left{{/if}} animated in" href="{{pathFor 'detailList' _id=this._id._str scope="projects"}}">
         {{#if profilThumbImageUrl}}
           <img src="{{urlImageCommunecter}}{{profilThumbImageUrl}}">
         {{/if}}
@@ -95,7 +94,7 @@
   {{/ionTabs}}
   {{/if}}
   {{else}}
-  {{> loading count=dataReadyPourcentage}}
+  {{> loading}}
   {{/if}}
 </template>
 
@@ -236,9 +235,6 @@
   {{> afQuickField name='name'}}
   {{> afQuickField name='avancement'}}
   {{> afQuickField name='tags'}}
-  {{/if}}
-
-  {{#if equals block 'contact'}}
   {{> afQuickField name='email'}}
   {{> afQuickField name='url'}}
   {{> afQuickField name='fixe'}}
@@ -246,9 +242,18 @@
   {{> afQuickField name='fax'}}
   {{/if}}
 
-  {{#if equals block 'description'}}
-  {{> afQuickField name='shortDescription' rows=8}}
-  {{> afQuickField name='description' rows=8}}
+  {{#if equals block 'network'}}
+  {{> afQuickField name='instagram'}}
+  {{> afQuickField name='skype'}}
+  {{> afQuickField name='github'}}
+  {{> afQuickField name='gpplus'}}
+  {{> afQuickField name='twitter'}}
+  {{> afQuickField name='facebook'}}
+  {{/if}}
+
+  {{#if equals block 'descriptions'}}
+  {{> afQuickField name='shortDescription' type="textarea" label-type='placeholder' rows=8}}
+  {{> afQuickField name='description' type="textarea" label-type='placeholder' rows=8}}
   {{/if}}
 
   {{#if equals block 'when'}}

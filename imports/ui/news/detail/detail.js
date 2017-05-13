@@ -32,7 +32,7 @@ Template.newsDetail.onCreated(function () {
 
   this.autorun(function(c) {
       const handle = singleSubs.subscribe('scopeDetail',Router.current().params.scope,Router.current().params._id);
-      const handleScopeDetail = singleSubs.subscribe('newsDetail', Router.current().params.newsId);
+      const handleScopeDetail = singleSubs.subscribe('newsDetail',Router.current().params.scope,Router.current().params._id,Router.current().params.newsId);
       if(handle.ready() && handleScopeDetail.ready()){
         template.ready.set(handle.ready());
       }
@@ -76,7 +76,7 @@ Template.newsDetail.events({
       destructiveButtonClicked: function() {
         console.log('Destructive Action!');
         Meteor.call('deleteNew',self._id._str,function(){
-          Router.go('newsList', {_id:Router.current().params._id,scope:Router.current().params.scope});
+          Router.go('detailList', {_id:Router.current().params._id,scope:Router.current().params.scope});
         });
         return true;
       }

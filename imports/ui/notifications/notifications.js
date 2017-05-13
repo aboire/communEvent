@@ -26,32 +26,50 @@ Template.notifications.helpers({
   }
 });
 
-Template.notificationsList.helpers({
+Template.notifications.helpers({
   notifications () {
-    return ActivityStream.find({}, {
-  		sort: {
-  			'created': -1
-  		}
-  	});
+    return ActivityStream.api.isUnread();
   }
 });
 
 Template.notificationsList.events({
+  'click .validateYes': function(event, template) {
+    event.preventDefault();
+    console.log(`${this.target.id},${this.target.type},${this.authorId()}`);
+    Meteor.call('validateEntity',this.target.id,this.target.type,this.authorId(),'citoyens','toBeValidated', function(err, resp) {
+      if(err){
+        if(err.reason){
+          IonPopup.alert({ template: TAPi18n.__(err.reason) });
+        }
+      }else{
+          console.log('yes validate');
+      }
+      });
+  },
+  'click .validateNo': function(event, template) {
+    event.preventDefault();
+    console.log(this._id._str);
+    Meteor.call('disconnectEntity',this.target.id,this.target.type,undefined,this.authorId(),'citoyens', function(err, resp) {
+      if(err){
+        if(err.reason){
+          IonPopup.alert({ template: TAPi18n.__(err.reason) });
+        }
+      }else{
+          console.log('no validate');
+      }
+      });
+  },
     'click .removeMe': function(event, template) {
       event.preventDefault();
-      /*  Meteor.call('markRead', this._id, function(err, resp) {
+      console.log(this._id._str);
+      Meteor.call('markRead', this._id._str, function(err, resp) {
             console.log('mark as read response', resp)
-        });*/
+        });
     },
     'click .clickGo': function(event, template) {
       event.preventDefault();
-        //Meteor.call('registerClick', this._id);
-        /*a["{\"msg\":\"added\",\"collection\":\"activityStream\",\"id\":\"58ff83c3dd045250307f4fc8\",\"fields\":
-        {\"type\":\"test\",\"verb\":\"comment\",\"author\":\"55ed9107e41d75a41a558524\",\"date\":{\"$date\":1493140419000},\"created\":{\"$date\":1493140419000},
-        \"object\":{\"objectType\":\"citoyens\",\"id\":\"55ed9107e41d75a41a558524\"},
-        \"target\":{\"objectType\":\"news\",\"id\":\"58fea1c7dd045227477f500d\"},
-        \"notify\":{\"objectType\":\"persons\",\"id\":[\"55ed9107e41d75a41a558524\"],\"displayName\":\"Thomas Craipeau a commenté votre post\",\"icon\":\"fa-comment\",
-        \"url\":\"/communecter/news/detail/id/58fea1c7dd045227477f500d\"},\"timestamp\":{\"$date\":1493140419000}}}"]*/
+      console.log(this._id._str);
+        Meteor.call('markSeen', this._id._str);
 
         const VERB_VIEW = "view";
         const VERB_ADD = "add";
@@ -85,34 +103,29 @@ Template.notificationsList.events({
 
 
         if(this.verb === 'comment'){
-          if(this.object.objectType === 'citoyens' || this.object.objectType === 'projects' || this.object.objectType === 'organizations' || this.object.objectType === 'events'){
-            //':scope/news/:_id'
-            if(this.target.objectType === 'news'){
-              //':scope/news/:_id/new/:newsId'
-              //':scope/news/:_id/new/:newsId/comments'
-              Router.go('newsDetailComments', {_id:this.object.id,newsId:this.target.id,scope:this.object.objectType});
+            if(this.target.type === 'news'){
+              Router.go('newsDetailComments', {_id:this.target.parent.id,newsId:this.target.id,scope:this.target.parent.type});
+            }
+        }else if(this.verb === 'like'){
+          if(this.target.type === 'news'){
+            Router.go('newsDetailComments', {_id:this.target.parent.id,newsId:this.target.id,scope:this.target.parent.type});
+          }
+        }else if(this.verb === 'post'){
+          if(this.target.type === 'citoyens' || this.target.type === 'projects' || this.target.type === 'organizations' || this.target.type === 'events'){
+            if(this.notify.objectType === 'news'){
+              Router.go('newsList', {_id:this.target.id,scope:this.target.type});
             }
           }
-        }else if(this.verb === 'like'){
-
-        }else if(this.verb === 'post'){
-          if(this.object.objectType === 'citoyens' || this.object.objectType === 'projects' || this.object.objectType === 'organizations' || this.object.objectType === 'events'){
-            //':scope/news/:_id'
-            if(this.target.objectType === 'news'){
-              //':scope/news/:_id'
-              //':scope/news/:_id/new/:newsId'
-              //':scope/news/:_id/new/:newsId/comments'
-              Router.go('newsList', {_id:this.object.id,scope:this.object.objectType});
-
-            }else if(this.target.objectType === 'projects' || this.target.objectType === 'organizations' || this.target.objectType === 'events'){
-              Router.go('newsList', {_id:this.target.id,scope:this.target.objectType});
-
+        }else if(this.verb === 'join' || this.verb === 'ask'){
+          if(this.target.type === 'citoyens' || this.target.type === 'projects' || this.target.type === 'organizations' || this.target.type === 'events'){
+            if(this.notify.objectType === 'asMember'){
+              Router.go('detailList', {_id:this.target.id,scope:this.target.type});
             }
           }
         }else if(this.verb === 'accept'){
           if(this.object.objectType === 'citoyens' || this.object.objectType === 'projects' || this.object.objectType === 'organizations' || this.object.objectType === 'events'){
             if(this.target.objectType === 'projects' || this.target.objectType === 'organizations' || this.target.objectType === 'events'){
-              Router.go('newsList', {_id:this.target.id,scope:this.target.objectType});
+              Router.go('detailList', {_id:this.target.id,scope:this.target.objectType});
 
             }
           }

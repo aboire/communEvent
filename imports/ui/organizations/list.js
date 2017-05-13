@@ -9,8 +9,9 @@ import { Router } from 'meteor/iron:router';
 import { AutoForm } from 'meteor/aldeed:autoform';
 import { Location } from 'meteor/djabatav:geolocation-plus';
 import { Mongo } from 'meteor/mongo';
+import { Random } from 'meteor/random';
 import { HTTP } from 'meteor/http';
-import { Mapbox } from 'meteor/pauloborges:mapbox';
+import { Mapbox } from 'meteor/communecter:mapbox';
 
 //collections
 import { Citoyens } from '../../api/citoyens.js';
@@ -24,9 +25,9 @@ import '../map/map.js';
 
 import './list.html';
 
-import { pageSession } from '../../api/client/reactive.js';
+import { pageSession,geoId } from '../../api/client/reactive.js';
 import { position } from '../../api/client/position.js';
-import { searchQuery } from '../../api/helpers.js';
+import { searchQuery,queryGeoFilter } from '../../api/helpers.js';
 
 Template.listOrganizations.onCreated(function () {
   var self = this;
@@ -74,7 +75,7 @@ Template.listOrganizations.onRendered(function() {
 
   const testgeo = () => {
     let geolocate = Session.get('geolocate');
-    if(!Session.get('GPSstart') && geolocate && !Location.getReactivePosition()){
+    if(!Session.get('GPSstart') && geolocate && !position.getLatlng()){
 
       IonPopup.confirm({title:TAPi18n.__('Position'),template:TAPi18n.__('Utiliser la position de votre profil'),
       onOk: function(){
@@ -85,11 +86,13 @@ Template.listOrganizations.onRendered(function() {
             updatedAt : new Date()
           });
           //clear cache
-          listEventsSubs.clear();
+          /*listEventsSubs.clear();
           listOrganizationsSubs.clear();
           listProjectsSubs.clear();
           listCitoyensSubs.clear();
-          dashboardSubs.clear();
+          dashboardSubs.clear();*/
+          const geoIdRandom = Random.id();
+          geoId.set('geoId', geoIdRandom);
         }
       },
       onCancel: function(){
@@ -108,6 +111,7 @@ Template.listOrganizations.helpers({
     let inputDate = new Date();
     let searchOrganizations= pageSession.get('searchOrganizations');
     let query={};
+    query = queryGeoFilter(query);
     if(searchOrganizations){
       query = searchQuery(query,searchOrganizations);
     }
@@ -117,6 +121,7 @@ Template.listOrganizations.helpers({
     let inputDate = new Date();
     let searchOrganizations= pageSession.get('searchOrganizations');
     let query={};
+    query = queryGeoFilter(query);
     if(searchOrganizations){
       query = searchQuery(query,searchOrganizations);
     }
@@ -132,10 +137,14 @@ Template.listOrganizations.helpers({
   return Template.instance().ready.get();
 },
 dataReadyAll() {
-return Template.instance().ready.get() && Organizations.find({}).count() === Counts.get(`countScopeGeo.organizations`);
+  let query={};
+  query = queryGeoFilter(query);
+return Template.instance().ready.get() && Organizations.find(query).count() === Counts.get(`countScopeGeo.organizations`);
 },
 dataReadyPourcentage() {
-return  `${Organizations.find({}).count()}/${Counts.get('countScopeGeo.organizations')}`;
+  let query={};
+  query = queryGeoFilter(query);
+  return  `${Organizations.find(query).count()}/${Counts.get('countScopeGeo.organizations')}`;
 }
 });
 
@@ -287,7 +296,7 @@ Template.organizationsBlockEdit.helpers({
     let organization = Organizations.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
     let organizationEdit = {};
     organizationEdit._id = organization._id._str;
-    if(Router.current().params.block === 'description'){
+    if(Router.current().params.block === 'descriptions'){
       organizationEdit.description = organization.description;
       organizationEdit.shortDescription = organization.shortDescription;
     }else if(Router.current().params.block === 'info'){
@@ -297,7 +306,6 @@ Template.organizationsBlockEdit.helpers({
       if(organization.tags){
         organizationEdit.tags = organization.tags;
       }
-    }else if(Router.current().params.block === 'contact'){
       organizationEdit.email = organization.email;
       organizationEdit.url = organization.url;
       if(organization.telephone){
@@ -310,6 +318,27 @@ Template.organizationsBlockEdit.helpers({
         if(organization.telephone.fax){
           organizationEdit.fax = organization.telephone.fax.join();
         }
+      }
+    }else if(Router.current().params.block === 'network'){
+      if(organization.socialNetwork){
+        if(organization.socialNetwork.instagram){
+        organizationEdit.instagram = organization.socialNetwork.instagram;
+      }
+      if(organization.socialNetwork.skype){
+        organizationEdit.skype = organization.socialNetwork.skype;
+      }
+      if(organization.socialNetwork.googleplus){
+        organizationEdit.gpplus = organization.socialNetwork.googleplus;
+      }
+      if(organization.socialNetwork.github){
+        organizationEdit.github = organization.socialNetwork.github;
+      }
+      if(organization.socialNetwork.twitter){
+        organizationEdit.twitter = organization.socialNetwork.twitter;
+      }
+      if(organization.socialNetwork.facebook){
+        organizationEdit.facebook = organization.socialNetwork.facebook;
+      }
       }
     }else if(Router.current().params.block === 'locality'){
       if(organization && organization.address){
@@ -424,10 +453,9 @@ Template.organizationsFields.onRendered(function() {
   if(geolocate && Router.current().route.getName()!="organizationsEdit" && Router.current().route.getName()!="organizationsBlockEdit"){
     var onOk=IonPopup.confirm({template:TAPi18n.__('Utiliser votre position actuelle ?'),
     onOk: function(){
-      let geo = Location.getReactivePosition();
-      if(geo && geo.latitude){
-        let latlng = {latitude: parseFloat(geo.latitude), longitude: parseFloat(geo.longitude)};
-        Meteor.call('getcitiesbylatlng',latlng,function(error, result){
+      const latlngObj = position.getLatlngObject();
+      if (latlngObj) {
+        Meteor.call('getcitiesbylatlng',latlngObj,function(error, result){
           if(result){
             //console.log(result);
             pageSession.set('postalCode', result.postalCodes[0].postalCode);
@@ -541,12 +569,12 @@ AutoForm.addHooks(['addOrganization', 'editOrganization'], {
   after: {
     method : function(error, result) {
       if (!error) {
-        Router.go('newsList', {_id:result.data.id,scope:'organizations'});
+        Router.go('detailList', {_id:result.data.id,scope:'organizations'});
       }
     },
     "method-update" : function(error, result) {
       if (!error) {
-        Router.go('newsList', {_id:result.data.id,scope:'organizations'});
+        Router.go('detailList', {_id:result.data.id,scope:'organizations'});
       }
     }
   },
@@ -581,7 +609,7 @@ AutoForm.addHooks(['editBlockOrganization'], {
     "method-update" : function(error, result) {
       if (!error) {
         if(Session.get('block')!=='preferences'){
-        Router.go('newsList', {_id:Session.get('scopeId'),scope:'organizations'});
+        Router.go('detailList', {_id:Session.get('scopeId'),scope:'organizations'});
       }
       }
     }

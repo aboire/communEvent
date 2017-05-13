@@ -14,8 +14,12 @@
 
   {{#contentFor "headerButtonRight"}}
 
-  <button class="button button-clear icon ion-android-notifications brand-base-text-color pull-right" data-ion-menu-toggle="right">
-   {{#if notificationsCount}}<div class="new-notification-bubble">{{notificationsCount}}</div>{{/if}}
+  <button class="button button-clear icon ion-android-notifications brand-base-text-color pull-right all-seen" data-ion-menu-toggle="right">
+    {{#transition in="bounceInDown" out="bounceOutUp"}}
+    {{#if notificationsCount}}
+    <div class="new-notification-bubble animated out">{{notificationsCount}}</div>
+    {{/if}}
+    {{/transition}}
   </button>
 
   {{/contentFor}}
@@ -38,7 +42,7 @@
       {{#if dataReady}}
       {{#transition in="zoomIn" out="bounceOut"}}
       {{#each citoyens}}
-      <a class="item {{#if profilThumbImageUrl}}item-thumbnail-left{{/if}} animated in" href="{{pathFor 'newsList' _id=this._id._str scope="citoyens"}}">
+      <a class="item {{#if profilThumbImageUrl}}item-thumbnail-left{{/if}} animated in" href="{{pathFor 'detailList' _id=this._id._str scope="citoyens"}}">
         {{#if profilThumbImageUrl}}
           <img src="{{urlImageCommunecter}}{{profilThumbImageUrl}}">
         {{/if}}
@@ -73,7 +77,7 @@
   {{/ionTabs}}
   {{/if}}
   {{else}}
-  {{> loading count=dataReadyPourcentage}}
+  {{> loading}}
   {{/if}}
 </template>
 
@@ -174,29 +178,29 @@
 
 <template name="citoyensFields">
   {{#if equals block 'info'}}
-  {{> afQuickField name='name'}}
-  {{> afQuickField name='username'}}
-  {{> afQuickField name='tags'}}
-  {{> afQuickField name='telegramAccount'}}
-  {{> afQuickField name='skypeAccount'}}
-  {{> afQuickField name='githubAccount'}}
-  {{> afQuickField name='gpplusAccount'}}
-  {{> afQuickField name='twitterAccount'}}
-  {{> afQuickField name='facebookAccount'}}
+  {{> afQuickField name='name' label-type='placeholder' icon="fa fa-user positive"}}
+  {{> afQuickField name='username' label-type='placeholder' icon="fa fa-user positive"}}
+  {{> afQuickField name='tags' icon="fa fa-hashtag"}}
+  {{> afQuickField name='email' label-type='placeholder' icon="fa fa-envelope"}}
+  {{> afQuickField name='url' label-type='placeholder' icon="fa fa-link"}}
+  {{> afQuickField name='fixe' label-type='placeholder' icon="fa fa-phone"}}
+  {{> afQuickField name='mobile' label-type='placeholder' icon="fa fa-mobile"}}
+  {{> afQuickField name='fax' label-type='placeholder' icon="fa fa-fax"}}
+  {{> afQuickField name='birthDate' label-type='placeholder' icon="fa fa-birthday-cake"}}
   {{/if}}
 
-  {{#if equals block 'contact'}}
-  {{> afQuickField name='email'}}
-  {{> afQuickField name='url'}}
-  {{> afQuickField name='fixe'}}
-  {{> afQuickField name='mobile'}}
-  {{> afQuickField name='fax'}}
-  {{> afQuickField name='birthDate'}}
+  {{#if equals block 'network'}}
+  {{> afQuickField name='telegram' label-type='placeholder' icon="fa fa-telegram"}}
+  {{> afQuickField name='skype' type="url" label-type='placeholder' icon="fa fa-skype"}}
+  {{> afQuickField name='github' type="url" label-type='placeholder' icon="fa fa-github"}}
+  {{> afQuickField name='gpplus' type="url" label-type='placeholder' icon="fa fa-google-plus"}}
+  {{> afQuickField name='twitter' type="url" label-type='placeholder' icon="fa fa-twitter"}}
+  {{> afQuickField name='facebook' type="url" label-type='placeholder' icon="fa fa-facebook"}}
   {{/if}}
 
-  {{#if equals block 'description'}}
-  {{> afQuickField name='shortDescription' rows=8}}
-  {{> afQuickField name='description' rows=8}}
+  {{#if equals block 'descriptions'}}
+  {{> afQuickField name='shortDescription' type="textarea" label-type='stacked' rows=8}}
+  {{> afQuickField name='description' type="textarea" label-type='stacked' rows=8}}
   {{/if}}
 
   {{#if equals block 'preferences'}}
@@ -228,7 +232,7 @@
   <div class="item item-text-wrap assertive"><i class="icon ion-android-alert"></i> {{_ "Error not postal code match"}}</div>
   {{/if}}
   {{/if}}
-  {{> afQuickField name='streetAddress' autocomplete="off"}}
+  {{> afQuickField name='streetAddress' label-type='stacked' autocomplete="off"}}
   {{#if latlng}}
   {{> map}}
   {{/if}}

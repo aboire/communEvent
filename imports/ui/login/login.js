@@ -1,5 +1,3 @@
-import './login.html';
-
 import { Meteor } from 'meteor/meteor';
 import { Session } from 'meteor/session';
 import { Template } from 'meteor/templating';
@@ -13,6 +11,8 @@ import { IsValidEmail } from 'meteor/froatsnook:valid-email';
 
 import { pageSession } from '../../api/client/reactive.js';
 import { position } from '../../api/client/position.js';
+
+import './login.html';
 
 Template.login.onCreated(function () {
   pageSession.set( 'error', false );

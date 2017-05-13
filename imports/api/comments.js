@@ -6,6 +6,20 @@ import { moment } from 'meteor/momentjs:moment';
 
 export const Comments = new Meteor.Collection("comments", {idGeneration : 'MONGO'});
 
+
+
+if(Meteor.isServer){
+//Index
+Comments.rawCollection().createIndex(
+    { contextId : 1},
+    { name: 'contextId', partialFilterExpression: { contextId: { $exists: true }}, background: true }
+  , (e) => {
+    if(e){
+      console.log(e)
+    }
+});
+}
+
 /*{
     "_id" : ObjectId("58a6e87e40bb4e187b545623"),
     "contextId" : "58a35bba40bb4e4b2d545623",

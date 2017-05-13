@@ -5,6 +5,64 @@ import { _ } from 'meteor/underscore';
 
 export const News = new Meteor.Collection("news", {idGeneration : 'MONGO'});
 
+if(Meteor.isServer){
+//Index
+News.rawCollection().createIndex(
+    { 'target.id' : 1},
+    { name: 'target_id', partialFilterExpression: { 'target.id': { $exists: true } }, background: true }
+  , (e) => {
+    if(e){
+      console.log(e)
+    }
+});
+
+News.rawCollection().createIndex(
+      { 'mentions.id' : 1},
+      { name: 'mentions_id', partialFilterExpression: { 'mentions.id': { $exists: true } }, background: true }
+    , (e) => {
+      if(e){
+        console.log(e)
+      }
+});
+
+News.rawCollection().createIndex(
+        { 'target.id' : 1, 'scope.type': 1},
+        { name: 'target_id_scope', partialFilterExpression: { 'target.id': { $exists: true }, 'scope.type': { $exists: true }}, background: true }
+      , (e) => {
+        if(e){
+          console.log(e)
+        }
+});
+
+News.rawCollection().createIndex(
+          { 'author' : 1},
+          { name: 'author_id', partialFilterExpression: { author: { $exists: true }}, background: true }
+        , (e) => {
+          if(e){
+            console.log(e)
+          }
+});
+
+News.rawCollection().createIndex(
+        { 'author' : 1, 'target.id': 1},
+        { name: 'author_target_id', partialFilterExpression: { author: { $exists: true }, 'target.id': { $exists: true }}, background: true }
+      , (e) => {
+        if(e){
+          console.log(e)
+        }
+});
+
+News.rawCollection().createIndex(
+    { author: 1, targetIsAuthor: 1, type: 1, 'scope.type' : 1 },
+    { name: 'author_targetIsAuthor_exists', partialFilterExpression: { author: { $exists: true },type: { $exists: true },'scope.type': { $exists: true },targetIsAuthor: { $exists: false } }, background: true }
+  , (e) => {
+    if(e){
+      console.log(e)
+    }
+});
+}
+
+//citoyens
 export const SchemasNewsRest =   new SimpleSchema({
   text : {
     type : String
@@ -65,14 +123,122 @@ export const SchemasNewsRest =   new SimpleSchema({
   }
 });
 
+  export const SchemasNewsRestBase = {};
+  SchemasNewsRestBase.citoyens = new SimpleSchema([SchemasNewsRest,{
+    scope: {
+      type: String,
+      autoValue: function() {
+        if (this.isSet) {
+          console.log(this.value);
+          return this.value;
+        } else {
+          return 'restricted';
+        }
+      },
+      optional: true
+    },
+  }]);
+  SchemasNewsRestBase.projects = new SimpleSchema([SchemasNewsRest,{
+    scope: {
+      type: String,
+      autoValue: function() {
+        if (this.isSet) {
+          console.log(this.value);
+          return this.value;
+        } else {
+          return 'restricted';
+        }
+      },
+      optional: true
+    },
+    targetIsAuthor: {
+      type : String,
+      defaultValue:'false',
+      optional: true
+    },
+  }]);
+  SchemasNewsRestBase.organizations = new SimpleSchema([SchemasNewsRest,{
+    scope: {
+      type: String,
+      autoValue: function() {
+        if (this.isSet) {
+          console.log(this.value);
+          return this.value;
+        } else {
+          return 'restricted';
+        }
+      },
+      optional: true
+    },
+    targetIsAuthor: {
+      type : String,
+      defaultValue:'false',
+      optional: true
+    },
+  }]);
+  SchemasNewsRestBase.events = new SimpleSchema([SchemasNewsRest,{
+    scope: {
+      type: String,
+      autoValue: function() {
+        if (this.isSet) {
+          console.log(this.value);
+          return this.value;
+        } else {
+          return 'restricted';
+        }
+      },
+      optional: true
+    },
+  }]);
+
   //collection
   if(Meteor.isClient){
     import { Documents } from './documents.js';
     import { Citoyens } from './citoyens.js';
+    import { Organizations } from './organizations.js';
+    import { Projects } from './projects.js';
+    import { Events } from './events.js';
     import { Comments } from './comments.js';
+
+    import { nameToCollection } from './helpers.js';
+
+    if(Meteor.isClient){
+      window.Organizations = Organizations;
+      window.Projects = Projects;
+      window.Citoyens = Citoyens;
+      window.Events = Events;
+    }
+
     News.helpers({
       authorNews () {
-        return Citoyens.findOne({_id:new Mongo.ObjectID(this.author)});
+        if(this.targetIsAuthor === 'true'){
+          if(this.target && this.target.type && this.target.id){
+            const collection = nameToCollection(this.target.type);
+            return collection.findOne({_id:new Mongo.ObjectID(this.target.id)});
+          }
+        } else {
+          return Citoyens.findOne({_id:new Mongo.ObjectID(this.author)});
+        }
+      },
+      targetNews () {
+        const queryOptions = {fields: {
+          '_id': 1,
+          'name': 1
+        }};
+          if(this.target && this.target.type && this.target.id){
+            const collection = nameToCollection(this.target.type);
+            return collection.findOne({_id:new Mongo.ObjectID(this.target.id)},queryOptions);
+          }
+      },
+      objectNews () {
+        const queryOptions = {fields: {
+          '_id': 1,
+          'name': 1
+        }};
+          if(this.object && this.object.type && this.object.id){
+            const collection = nameToCollection(this.object.type);
+            return collection.findOne({_id:new Mongo.ObjectID(this.object.id)},queryOptions);
+          }
       },
       photoNewsAlbums () {
         if(this.media && this.media.images){

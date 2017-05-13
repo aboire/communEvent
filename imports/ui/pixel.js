@@ -17,6 +17,9 @@ Template.layout.events({
   'change .all-read input' : function(event, template) {
     Meteor.call('allRead');
   },
+  'click .all-seen' : function(event, template) {
+    Meteor.call('allSeen');
+  },
   'click .scanner' : function(event, template){
     event.preventDefault();
     if(Meteor.isCordova){
@@ -53,7 +56,7 @@ Template.layout.events({
                 Meteor.call('saveattendeesEvent',qr._id, function (error, result) {
                   if (!error) {
                     window.alert("Connexion à l'entité réussie");
-                    Router.go("newsList",{scope:'events',_id:qr._id});
+                    Router.go("detailList",{scope:'events',_id:qr._id});
                   }else{
                     window.alert(error.reason);
                     console.log('error',error);
@@ -63,7 +66,7 @@ Template.layout.events({
                 Meteor.call('connectEntity',qr._id,'organizations', function (error, result) {
                   if (!error) {
                     window.alert("Connexion à l'entité réussie");
-                    Router.go("newsList",{scope:'organizations',_id:qr._id});
+                    Router.go("detailList",{scope:'organizations',_id:qr._id});
                   }else{
                     window.alert(error.reason);
                     console.log('error',error);
@@ -73,7 +76,7 @@ Template.layout.events({
                 Meteor.call('connectEntity',qr._id,'projects', function (error, result) {
                   if (!error) {
                     window.alert("Connexion à l'entité réussie");
-                    Router.go("newsList",{scope:'projects',_id:qr._id});
+                    Router.go("detailList",{scope:'projects',_id:qr._id});
                   }else{
                     window.alert(error.reason);
                     console.log('error',error);
@@ -81,7 +84,7 @@ Template.layout.events({
                 });
               }
             }else{
-            Router.go("newsList",{scope:'events',_id:result.text});
+            Router.go("detailList",{scope:'events',_id:result.text});
             }
           }else{
             return ;
@@ -98,10 +101,10 @@ Template.layout.events({
 });
 
 Template.layout.helpers({
-  notificationsCount () {
-    return ActivityStream.find({}).count();
-  },
   allReadChecked (notificationsCount) {
     if(notificationsCount==0) return "checked";
+  },
+  notifications () {
+    return ActivityStream.api.isUnread();
   }
 });

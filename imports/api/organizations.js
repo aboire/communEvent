@@ -57,9 +57,40 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
   }]);
 
   export const BlockOrganizationsRest = {};
-  BlockOrganizationsRest.description = new SimpleSchema([blockBaseSchema,baseSchema.pick(['shortDescription','description'])]);
-  BlockOrganizationsRest.info = new SimpleSchema([blockBaseSchema,baseSchema.pick(['name','tags','tags.$']),SchemasOrganizationsRest.pick(['type'])]);
-  BlockOrganizationsRest.contact = new SimpleSchema([blockBaseSchema,baseSchema.pick(['url']),SchemasOrganizationsRest.pick(['email','fixe','mobile','fax'])]);
+  BlockOrganizationsRest.descriptions = new SimpleSchema([blockBaseSchema,baseSchema.pick(['shortDescription','description'])]);
+  BlockOrganizationsRest.info = new SimpleSchema([blockBaseSchema,baseSchema.pick(['name','tags','tags.$','url']),SchemasOrganizationsRest.pick(['type','email','fixe','mobile','fax'])]);
+  BlockOrganizationsRest.network = new SimpleSchema([blockBaseSchema,{
+    github : {
+      type : String,
+      regEx: SimpleSchema.RegEx.Url,
+      optional: true
+    },
+    instagram : {
+      type : String,
+      regEx: SimpleSchema.RegEx.Url,
+      optional: true
+    },
+    skype : {
+      type : String,
+      regEx: SimpleSchema.RegEx.Url,
+      optional: true
+    },
+    gpplus : {
+      type : String,
+      regEx: SimpleSchema.RegEx.Url,
+      optional: true
+    },
+    twitter : {
+      type : String,
+      regEx: SimpleSchema.RegEx.Url,
+      optional: true
+    },
+    facebook : {
+      type : String,
+      regEx: SimpleSchema.RegEx.Url,
+      optional: true
+    }
+  }]);
   BlockOrganizationsRest.locality = new SimpleSchema([blockBaseSchema,geoSchema]);
   BlockOrganizationsRest.preferences = new SimpleSchema([blockBaseSchema,{
     preferences : {
@@ -74,7 +105,8 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
   import { Documents } from './documents.js';
   import { Events } from './events.js';
   import { Projects } from './projects.js';
-  import { queryLink,queryLinkType,arrayLinkType,queryOptions } from './helpers.js';
+  import { ActivityStream } from './activitystream.js';
+  import { queryLink,queryLinkType,arrayLinkType,queryLinkToBeValidated,arrayLinkToBeValidated,queryOptions } from './helpers.js';
 
   Organizations.helpers({
     isVisibleFields (field){
@@ -111,8 +143,21 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
     isCreator () {
       return this.creator === Meteor.userId();
     },
-    isAdmin () {
-      return this.links && this.links.members && this.links.members[Meteor.userId()] && this.links.members[Meteor.userId()].isAdmin;
+    isAdmin (userId) {
+      let bothUserId = (typeof userId !== 'undefined') ? userId : Meteor.userId();
+      return (this.links && this.links.members && this.links.members[bothUserId] && this.links.members[bothUserId].isAdmin && this.isToBeValidated(bothUserId)) ? true : false;
+    },
+    isToBeValidated (userId) {
+      let bothUserId = (typeof userId !== 'undefined') ? userId : Meteor.userId();
+      return (this.links && this.links.members && this.links.members[bothUserId] && this.links.members[bothUserId].toBeValidated) ? false : true;
+    },
+    listMembersToBeValidated (){
+      if(this.links && this.links.members){
+        const query = queryLinkToBeValidated(this.links.members);
+          return Citoyens.find(query,queryOptions);
+      } else{
+        return false;
+      }
     },
     scopeVar () {
       return 'organizations';
@@ -124,10 +169,10 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
       return 'listOrganizations';
     },
     isFollows (followId){
-      return this.links && this.links.follows && this.links.follows[followId];
+      return (this.links && this.links.follows && this.links.follows[followId]) ? true : false;
     },
     isFollowsMe (){
-      return this.links && this.links.follows && this.links.follows[Meteor.userId()];
+      return (this.links && this.links.follows && this.links.follows[Meteor.userId()]) ? true : false;
     },
     listFollows (search){
       if(this.links && this.links.follows){
@@ -139,13 +184,13 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
     },
     countFollows () {
       //return this.links && this.links.follows && _.size(this.links.follows);
-      return this.listFollows(search).count();
+      return this.listFollows(search) && this.listFollows(search).count();
     },
     isFollowers (followId){
-      return this.links && this.links.followers && this.links.followers[followId];
+      return (this.links && this.links.followers && this.links.followers[followId]) ? true : false;
     },
     isFollowersMe (){
-      return this.links && this.links.followers && this.links.followers[Meteor.userId()];
+      return (this.links && this.links.followers && this.links.followers[Meteor.userId()]) ? true : false;
     },
     listFollowers (search){
       if(this.links && this.links.followers){
@@ -157,10 +202,11 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
     },
     countFollowers (search) {
       //return this.links && this.links.followers && _.size(this.links.followers);
-      return this.listFollowers(search).count();
+      return this.listFollowers(search) && this.listFollowers(search).count();
     },
-    isMembers (){
-          return this.links && this.links.members && this.links.members[Meteor.userId()];
+    isMembers (userId){
+      let bothUserId = (typeof userId !== 'undefined') ? userId : Meteor.userId();
+      return (this.links && this.links.members && this.links.members[bothUserId] && this.isToBeValidated(bothUserId)) ? true : false;
     },
     listEvents (search){
       if(this.links && this.links.events){
@@ -172,7 +218,7 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
     },
     countEvents (search) {
       //return this.links && this.links.events && _.size(this.links.events);
-      return this.listEvents(search).count();
+      return this.listEvents(search) && this.listEvents(search).count();
     },
     listProjects (search){
       if(this.links && this.links.projects){
@@ -184,7 +230,7 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
     },
     countProjects (search) {
       //return this.links && this.links.projects && _.size(this.links.projects);
-      return this.listProjects(search).count();
+      return this.listProjects(search) && this.listProjects(search).count();
     },
     listMembers (search){
       if(this.links && this.links.members){
@@ -199,7 +245,7 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
       let members = arrayLinkType(this.links.members,'citoyens');
       return members && _.size(members);
       }*/
-      return this.listMembers(search).count();
+      return this.listMembers(search) && this.listMembers(search).count();
     },
     listMembersOrganizations (search,selectorga){
       if(this.links && this.links.members){
@@ -213,7 +259,32 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
       /*if(this.links && this.links.members){
       let members = arrayLinkType(this.links.members,'organizations');
       return members && _.size(members);}*/
-      return this.listMembersOrganizations(search,selectorga).count();
+      return this.listMembersOrganizations(search,selectorga) && this.listMembersOrganizations(search,selectorga).count();
+    },
+    listProjectsCreator (){
+      let query = {};
+      query['parentId'] = this._id._str;
+      return Projects.find(query,queryOptions);
+    },
+    countProjectsCreator () {
+      return this.listProjectsCreator() && this.listProjectsCreator().count();
+    },
+    listEventsCreator (){
+      let query = {};
+      query['organizerId'] = this._id._str;
+      return Events.find(query,queryOptions);
+    },
+    countEventsCreator () {
+      //return this.links && this.links.events && _.size(this.links.events);
+      return this.listEventsCreator() && this.listEventsCreator().count();
+    },
+    listNotifications (userId){
+    let bothUserId = (typeof userId !== 'undefined') ? userId : Meteor.userId();
+  	return ActivityStream.api.isUnseen(bothUserId,this._id._str);
+    },
+    listNotificationsAsk (userId){
+    let bothUserId = (typeof userId !== 'undefined') ? userId : Meteor.userId();
+  	return ActivityStream.api.isUnseenAsk(bothUserId,this._id._str);
     },
     countPopMap () {
       return this.links && this.links.members && _.size(this.links.members);
@@ -224,8 +295,30 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
     listOrganisationTypes (){
         return Lists.find({name:'organisationTypes'});
     },
-    news () {
-      return News.find({'target.id':Router.current().params._id},{sort: {"created": -1},limit: Session.get('limit') });
+    newsJournal (target,userId,limit) {
+      const query = {};
+      const options = {};
+      options['sort'] = {"created": -1};
+      query['$or'] = [];
+      let bothUserId = (typeof userId !== 'undefined') ? userId : Meteor.userId();
+      let targetId = (typeof target !== 'undefined') ? target : Router.current().params._id;
+      if(Meteor.isClient){
+        let bothLimit = Session.get('limit');
+      }else{
+        if(typeof limit !== 'undefined'){
+          options['limit'] = limit;
+        }
+      }
+      let scopeTypeArray = ['public','restricted'];
+      if (this.isMembers(bothUserId)) {
+        scopeTypeArray.push('private');
+      }
+      query['$or'].push({'target.id':targetId,'scope.type':{$in:scopeTypeArray}});
+      query['$or'].push({'mentions.id':targetId,'scope.type':{$in:scopeTypeArray}});
+      if(bothUserId){
+        //query['$or'].push({'author':bothUserId});
+      }
+      return News.find(query,options);
     },
     new () {
       return News.findOne({_id:new Mongo.ObjectID(Router.current().params.newsId)});

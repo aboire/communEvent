@@ -28,8 +28,14 @@
         {{#if currentUser.profile.pixelhumain.profilThumbImageUrl}}
         {{> imgDoc profilThumbImageUrl=currentUser.profile.pixelhumain.profilThumbImageUrl}}
         {{/if}}
-        <h2><a href="{{pathFor 'newsList' _id=currentUser._id scope='citoyens'}}" class="positive" data-ion-menu-close>{{currentUser.profile.pixelhumain.name}}</a></h2>
+        <h2><a href="{{pathFor 'detailList' _id=currentUser._id scope='citoyens'}}" class="positive" data-ion-menu-close>{{currentUser.profile.pixelhumain.name}}</a></h2>
         <p>{{currentUser.profile.pixelhumain.email}}</p>
+      </div>
+      <div class="button-bar bar-stable">
+        <a href="{{pathFor 'directory' _id=currentUser._id scope='citoyens'}}" class="button button-dark button-small" data-ion-menu-close><i class="icon fa fa-connectdevelop"></i></a>
+        <a href="{{pathFor 'eventsAdd' _id=currentUser._id scope='citoyens'}}" class="button button-event button-small" data-ion-menu-close><i class="icon fa fa-plus"></i> <i class="icon fa fa-calendar"></i></a>
+        <a href="{{pathFor 'organizationsAdd' _id=currentUser._id scope='citoyens'}}" class="button button-organization button-small" data-ion-menu-close><i class="icon fa fa-plus"></i> <i class="icon fa fa-users"></i></a>
+        <a href="{{pathFor 'projectsAdd' _id=currentUser._id scope='citoyens'}}" class="button button-project button-small" data-ion-menu-close><i class="icon fa fa-plus"></i> <i class="icon fa fa-lightbulb-o"></i></a>
       </div>
 
       <a class="item item-stable item-icon-right" href="{{pathFor 'dashboard'}}" data-ion-menu-close>{{_ "Dashboard"}} {{> ionIcon icon="ios-speedometer"}}</a>
@@ -63,12 +69,12 @@
     <div class="list">
       <div class="item item-stable item-checkbox item-checkbox-right">
         <label class="checkbox checkbox-positive all-read">
-          <input type="checkbox" checked="{{allReadChecked notificationsCount}}">
+          <input type="checkbox" checked="{{allReadChecked notificationsCountRead}}">
         </label>
         {{_ "All read"}}
       </div>
       {{#if currentUser}}
-      {{> notificationsList}}
+      {{> notificationsList notifications=notifications}}
       {{/if}}
     </div>
   </div>

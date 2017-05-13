@@ -158,7 +158,7 @@
         },
         "8": {
           "exp": "SimpleSchema.RegEx.Url",
-          "msg": "Cette URL is invalide"
+          "msg": "Cette URL est invalide"
         },
         "9": {
           "exp": "SimpleSchema.RegEx.Id",
@@ -212,7 +212,14 @@
         "label": "Pays",
         "placeholder": "Sélectionnez un...",
         "options": {
-
+          "FR":"France",
+          "GP":"Guadeloupe",
+          "GF":"Guyanne Française",
+          "MQ":"Martinique",
+          "YT":"Mayotte",
+          "NC":"Nouvelle-Calédonie",
+          "RE":"Réunion",
+          "PM":"St Pierre et Miquelon"
         }
       },
       "postalCode":{
@@ -259,7 +266,9 @@
         "label": "Role",
         "placeholder": "Sélectionnez un...",
         "options": {
-
+          "admin":"Administrateur",
+          "member":"Membre",
+          "creator":"Juste un citoyen"
         }
       },
       "email":{
@@ -275,7 +284,14 @@
         "label": "Pays",
         "placeholder": "Sélectionnez un...",
         "options": {
-
+          "FR":"France",
+          "GP":"Guadeloupe",
+          "GF":"Guyanne Française",
+          "MQ":"Martinique",
+          "YT":"Mayotte",
+          "NC":"Nouvelle-Calédonie",
+          "RE":"Réunion",
+          "PM":"St Pierre et Miquelon"
         }
       },
       "postalCode":{
@@ -327,7 +343,14 @@
         "label": "Pays",
         "placeholder": "Sélectionnez un...",
         "options": {
-
+          "FR":"France",
+          "GP":"Guadeloupe",
+          "GF":"Guyanne Française",
+          "MQ":"Martinique",
+          "YT":"Mayotte",
+          "NC":"Nouvelle-Calédonie",
+          "RE":"Réunion",
+          "PM":"St Pierre et Miquelon"
         }
       },
       "postalCode":{
@@ -354,11 +377,115 @@
       }
     },
     "news":{
-      "name":{
-        "label": "Titre"
+      "global":{
+        "name":{
+          "label": "title"
+        },
+        "text":{
+          "label": "Message",
+          "placeholder": "message..."
+        },
+        "tags":{
+          "label": "Tags"
+        }
       },
-      "text":{
-        "label": "Message"
+      "citoyens":{
+        "name":{
+          "label": "title"
+        },
+        "text":{
+          "label": "Message",
+          "placeholder": "message..."
+        },
+        "tags":{
+          "label": "Tags"
+        },
+        "scope":{
+          "label": "Visibilité",
+          "placeholder": "Sélectionnez un...",
+          "options": {
+            "restricted":"Mon réseau",
+            "private":"Privé",
+            "public":"Public"
+          }
+        }
+      },
+      "projects":{
+        "name":{
+          "label": "title"
+        },
+        "text":{
+          "label": "Message",
+          "placeholder": "message..."
+        },
+        "tags":{
+          "label": "Tags"
+        },
+        "scope":{
+          "label": "Visibilité",
+          "placeholder": "Sélectionnez un...",
+          "options": {
+            "private":"Privé",
+            "public":"Public",
+            "restricted":" Mon réseau"
+          }
+        },
+        "targetIsAuthor":{
+          "label": "Auteur",
+          "placeholder": "Sélectionnez un...",
+          "options": {
+            "false":"Moi",
+            "true":"Le projet"
+          }
+        }
+      },
+      "organizations":{
+        "name":{
+          "label": "title"
+        },
+        "text":{
+          "label": "Message",
+          "placeholder": "message..."
+        },
+        "tags":{
+          "label": "Tags"
+        },
+        "scope":{
+          "label": "Visibilité",
+          "placeholder": "Sélectionnez un...",
+          "options": {
+            "private":"Privé",
+            "public":"Public",
+            "restricted":" Mon réseau"
+          }
+        },
+        "targetIsAuthor":{
+          "label": "Auteur",
+          "placeholder": "Sélectionnez un...",
+          "options": {
+            "false":"Moi",
+            "true":"L'organisation"
+          }
+        }
+      },
+      "events":{
+        "name":{
+          "label": "title"
+        },
+        "text":{
+          "label": "Message",
+          "placeholder": "message..."
+        },
+        "tags":{
+          "label": "Tags"
+        },
+        "scope":{
+          "label": "Visibilité",
+          "placeholder": "Sélectionnez un...",
+          "options": {
+            "restricted":" Mon réseau"
+          }
+        }
       }
     },
     "comments":{
@@ -373,31 +500,40 @@
     },
     "global":{
       "name":{
-        "label": "Nom"
+        "label": "Nom",
+        "placeholder": "nom"
       },
       "username":{
-        "label": "Pseudo"
+        "label": "Pseudo",
+        "placeholder": "Pseudo"
       },
       "shortDescription":{
-        "label": "Description courte"
+        "label": "Description courte",
+        "placeholder":"Description courte"
       },
       "description":{
-        "label": "Description"
+        "label": "Description",
+        "placeholder":"Description"
       },
       "email":{
-        "label": "Email"
+        "label": "Email",
+        "placeholder": "email"
       },
       "fixe":{
-        "label": "Téléphone fixe"
+        "label": "Téléphone fixe",
+        "placeholder": "téléphone fixe"
       },
       "mobile":{
-        "label": "Téléphone mobile"
+        "label": "Téléphone mobile",
+        "placeholder": "téléphone mobile"
       },
       "fax":{
-        "label": "Fax"
+        "label": "Fax",
+        "placeholder": "fax"
       },
       "url":{
-        "label": "Url"
+        "label": "Url",
+        "placeholder": "url"
       },
       "tags":{
         "label": "Tags"
@@ -442,29 +578,33 @@
           "mature":"mature"
         }
       },
-      "githubAccount" : {
+      "github" : {
         "label": "github",
         "placeholder": "Lien github"
       },
-      "telegramAccount" : {
+      "telegram" : {
         "label": "telegram",
         "placeholder": "Speudo telegram"
       },
-      "skypeAccount" : {
+      "skype" : {
         "label": "skype",
         "placeholder": "Lien skype"
       },
-      "gpplusAccount" : {
+      "gpplus" : {
         "label": "google plus",
         "placeholder": "Lien google plus"
       },
-      "twitterAccount" : {
+      "twitter" : {
         "label": "twitter",
         "placeholder": "Lien twitter"
       },
-      "facebookAccount" : {
+      "facebook" : {
         "label": "facebook",
         "placeholder": "Lien facebook"
+      },
+      "instagram" : {
+        "label": "instagram",
+        "placeholder": "Lien instagram"
       },
       "country":{
         "label": "Pays",

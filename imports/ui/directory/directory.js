@@ -31,6 +31,8 @@ window.Citoyens = Citoyens;
 
 import { pageDirectory } from '../../api/client/reactive.js';
 
+import '../components/directory/list.js';
+
 //suivant le scope
 
 Template.directory.onCreated(function(){
@@ -71,14 +73,13 @@ Template.directory.helpers({
   }
 });
 
-Template.listDirectorycitoyens.onCreated(function(){
+Template.Directory_view.onCreated(function(){
   pageDirectory.set('search', null);
   pageDirectory.set('view', 'all');
   pageDirectory.set('selectorga', null);
 });
 
-
-Template.listDirectorycitoyens.helpers({
+Template.Directory_view.helpers({
   search (){
     return pageDirectory.get('search');
   },
@@ -87,7 +88,33 @@ Template.listDirectorycitoyens.helpers({
   }
 });
 
-Template.listDirectorycitoyens.events({
+Template.Directory_search.helpers({
+  search (){
+    return pageDirectory.get('search');
+  }
+});
+
+Template.Directory_search.events({
+  'keyup #search, change #search':_.throttle((event,template) => {
+    if(event.currentTarget.value.length>0){
+      console.log(event.currentTarget.value);
+      pageDirectory.set( 'search', event.currentTarget.value);
+    }else{
+      pageDirectory.set( 'search', null);
+    }
+  }, 500)
+});
+
+Template.Directory_button_bar.helpers({
+  search (){
+    return pageDirectory.get('search');
+  },
+  view (){
+    return pageDirectory.get('view');
+  }
+});
+
+Template.Directory_button_bar.events({
   "click .all" (evt) {
     evt.preventDefault();
     pageDirectory.set('view','all');
@@ -95,6 +122,14 @@ Template.listDirectorycitoyens.events({
   "click .follows" (evt) {
     evt.preventDefault();
     pageDirectory.set('view','follows');
+  },
+  "click .members" (evt) {
+    evt.preventDefault();
+    pageDirectory.set('view','members');
+  },
+  "click .membersorganizations" (evt) {
+    evt.preventDefault();
+    pageDirectory.set('view','membersorganizations');
   },
   "click .memberof" (evt) {
     evt.preventDefault();
@@ -112,82 +147,9 @@ Template.listDirectorycitoyens.events({
     evt.preventDefault();
     pageDirectory.set('view','followers');
   },
-});
-
-Template.listDirectoryorganizations.onCreated(function(){
-  pageDirectory.set('search', null);
-  pageDirectory.set('view', 'all');
-  pageDirectory.set('selectorga', null);
-});
-
-
-Template.listDirectoryorganizations.helpers({
-  search (){
-    return pageDirectory.get('search');
-  },
-  view (){
-    return pageDirectory.get('view');
-  }
-});
-
-Template.listDirectoryorganizations.events({
-  "click .all" (evt) {
-    evt.preventDefault();
-    pageDirectory.set('view','all');
-  },
-  "click .members" (evt) {
-    evt.preventDefault();
-    pageDirectory.set('view','members');
-  },
-  "click .membersorganizations" (evt) {
-    evt.preventDefault();
-    pageDirectory.set('view','membersorganizations');
-  },
-  "click .events" (evt) {
-    evt.preventDefault();
-    pageDirectory.set('view','events');
-  },
-  "click .projects" (evt) {
-    evt.preventDefault();
-    pageDirectory.set('view','projects');
-  },
-  "click .followers" (evt) {
-    evt.preventDefault();
-    pageDirectory.set('view','followers');
-  },
-});
-
-Template.listDirectoryprojects.onCreated(function(){
-  pageDirectory.set('search', null);
-  pageDirectory.set('view', 'all');
-});
-
-
-Template.listDirectoryprojects.helpers({
-  search (){
-    return pageDirectory.get('search');
-  },
-  view (){
-    return pageDirectory.get('view');
-  }
-});
-
-Template.listDirectoryprojects.events({
-  "click .all" (evt) {
-    evt.preventDefault();
-    pageDirectory.set('view','all');
-  },
   "click .contributors" (evt) {
     evt.preventDefault();
     pageDirectory.set('view','contributors');
-  },
-  "click .events" (evt) {
-    evt.preventDefault();
-    pageDirectory.set('view','events');
-  },
-  "click .followers" (evt) {
-    evt.preventDefault();
-    pageDirectory.set('view','followers');
   },
 });
 
@@ -262,145 +224,18 @@ Template.listDirectoryFollowers.helpers({
 });
 
 
-Template.listDirectorycitoyens.events({
-  'keyup #search, change #search':_.throttle((event,template) => {
-    if(event.currentTarget.value.length>0){
-      console.log(event.currentTarget.value);
-      pageDirectory.set( 'search', event.currentTarget.value);
-    }else{
-      pageDirectory.set( 'search', null);
-    }
-  }, 500)
-});
-
-Template.listDirectoryorganizations.events({
-  'keyup #search, change #search':_.throttle((event,template) => {
-    if(event.currentTarget.value.length>0){
-      console.log(event.currentTarget.value);
-      pageDirectory.set( 'search', event.currentTarget.value);
-    }else{
-      pageDirectory.set( 'search', null);
-    }
-  }, 500)
-});
-
-Template.listDirectoryprojects.events({
-  'keyup #search, change #search':_.throttle((event,template) => {
-    if(event.currentTarget.value.length>0){
-      console.log(event.currentTarget.value);
-      pageDirectory.set( 'search', event.currentTarget.value);
-    }else{
-      pageDirectory.set( 'search', null);
-    }
-  }, 500)
-});
-
-Template.listDirectoryFollows.events({
-  "click .unfollowperson-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('disconnectEntity',this._id._str,'citoyens');
-    return ;
-  },
-  "click .followperson-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('followEntity',this._id._str,'citoyens');
-    return ;
-  }
-});
-
-Template.listDirectoryFollowers.events({
-  "click .unfollowperson-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('disconnectEntity',this._id._str,'citoyens');
-    return ;
-  },
-  "click .followperson-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('followEntity',this._id._str,'citoyens');
-    return ;
-  }
-});
-
-Template.listDirectoryContributors.events({
-  "click .unfollowperson-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('disconnectEntity',this._id._str,'citoyens');
-    return ;
-  },
-  "click .followperson-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('followEntity',this._id._str,'citoyens');
-    return ;
-  }
-});
-
 Template.listDirectoryMemberOf.events({
-  "click .disconnectscope-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('disconnectEntity',this._id._str,'organizations');
-    return ;
-  },
-  "click .connectscope-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('connectEntity',this._id._str,'organizations');
-    return ;
-  },
   "click .selectorga" (evt) {
     evt.preventDefault();
     pageDirectory.set( 'selectorga', evt.currentTarget.id);
-    return ;
-  },
-
-});
-
-Template.listDirectoryMembers.events({
-  "click .unfollowperson-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('disconnectEntity',this._id._str,'citoyens');
-    return ;
-  },
-  "click .followperson-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('followEntity',this._id._str,'citoyens');
     return ;
   }
 });
 
 Template.listDirectoryMembersOrganizations.events({
-  "click .disconnectscope-link" (evt) {
+  "click .selectorga" (evt) {
     evt.preventDefault();
-    Meteor.call('disconnectEntity',this._id._str,'organizations');
-    return ;
-  },
-  "click .connectscope-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('connectEntity',this._id._str,'organizations');
-    return ;
-  }
-});
-
-Template.listDirectoryProjects.events({
-  "click .disconnectscope-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('disconnectEntity',this._id._str,'projects');
-    return ;
-  },
-  "click .connectscope-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('connectEntity',this._id._str,'projects');
-    return ;
-  }
-});
-
-Template.listDirectoryEvents.events({
-  "click .disconnectscope-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('disconnectEntity',this._id._str,'events');
-    return ;
-  },
-  "click .connectscope-link" (evt) {
-    evt.preventDefault();
-    Meteor.call('connectEntity',this._id._str,'events');
+    pageDirectory.set( 'selectorga', evt.currentTarget.id);
     return ;
   }
 });

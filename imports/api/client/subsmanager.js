@@ -24,6 +24,10 @@ export const newsListSubs = new SubsManager({
     cacheLimit: 500,
     expireIn: 60
 });
+export const filActusSubs = new SubsManager({
+    cacheLimit: 500,
+    expireIn: 60
+});
 export const directoryListSubs = new SubsManager({
     cacheLimit: 800,
     expireIn: 60

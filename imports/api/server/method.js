@@ -10,7 +10,7 @@ import { SimpleSchema } from 'meteor/aldeed:simple-schema';
 //import { NotificationHistory } from '../notification_history.js';
 import { ActivityStream } from '../activitystream.js';
 import { Citoyens,BlockCitoyensRest,SchemasCitoyensRest,SchemasFollowRest,SchemasInviteAttendeesEventRest } from '../citoyens.js';
-import { News,SchemasNewsRest } from '../news.js';
+import { News,SchemasNewsRest,SchemasNewsRestBase } from '../news.js';
 import { Documents } from '../documents.js';
 import { Cities } from '../cities.js';
 import { Events,SchemasEventsRest,BlockEventsRest } from '../events.js';
@@ -36,11 +36,21 @@ const baseDocRetour = (docRetour,doc,scope) => {
 
 if(scope === 'block'){
 if(doc.typeElement === 'citoyens'){
-  if(doc.block === 'description'){
+  if(doc.block === 'descriptions'){
     docRetour.description = doc.description ? doc.description : '';
     docRetour.shortDescription = doc.shortDescription ? doc.shortDescription : '';
   }
-  if(doc.block === 'contact'){
+  if(doc.block === 'network'){
+    docRetour.telegram = doc.telegram ? doc.telegram : '';
+    docRetour.skype = doc.skype ? doc.skype : '';
+    docRetour.github = doc.github ? doc.github : '';
+    docRetour.gpplus = doc.gpplus ? doc.gpplus : '';
+    docRetour.twitter = doc.twitter ? doc.twitter : '';
+    docRetour.facebook = doc.facebook ? doc.facebook : '';
+  }
+  if(doc.block === 'info'){
+    docRetour.name = doc.name;
+    docRetour.tags = doc.tags ? doc.tags : '';
     docRetour.email = doc.email;
     docRetour.url = doc.url ? doc.url : '';
     docRetour.fixe = doc.fixe ? doc.fixe : '';
@@ -48,34 +58,31 @@ if(doc.typeElement === 'citoyens'){
     docRetour.fax = doc.fax ? doc.fax : '';
     docRetour.birthDate = doc.birthDate ? moment(doc.birthDate).format() : '';
   }
-  if(doc.block === 'info'){
-    docRetour.name = doc.name;
-    docRetour.tags = doc.tags ? doc.tags : '';
-    docRetour.telegramAccount = doc.telegramAccount ? doc.telegramAccount : '';
-    docRetour.skypeAccount = doc.skypeAccount ? doc.skypeAccount : '';
-    docRetour.gpplusAccount = doc.gpplusAccount ? doc.gpplusAccount : '';
-    docRetour.twitterAccount = doc.twitterAccount ? doc.twitterAccount : '';
-    docRetour.facebookAccount = doc.facebookAccount ? doc.facebookAccount : '';
-  }
   if(doc.block === 'preferences'){
 
   }
 }else if(doc.typeElement === 'events'){
-  if(doc.block === 'description'){
+  if(doc.block === 'descriptions'){
     docRetour.description = doc.description ? doc.description : '';
     docRetour.shortDescription = doc.shortDescription ? doc.shortDescription : '';
   }
-  if(doc.block === 'contact'){
-    docRetour.email = doc.email ? doc.email : '';
-    docRetour.url = doc.url ? doc.url : '';
-    docRetour.fixe = doc.fixe ? doc.fixe : '';
-    docRetour.mobile = doc.mobile ? doc.mobile : '';
-    docRetour.fax = doc.fax ? doc.fax : '';
+  if(doc.block === 'network'){
+    docRetour.instagram = doc.instagram ? doc.instagram : '';
+    docRetour.skype = doc.skype ? doc.skype : '';
+    docRetour.github = doc.github ? doc.github : '';
+    docRetour.gpplus = doc.gpplus ? doc.gpplus : '';
+    docRetour.twitter = doc.twitter ? doc.twitter : '';
+    docRetour.facebook = doc.facebook ? doc.facebook : '';
   }
   if(doc.block === 'info'){
     docRetour.name = doc.name;
     docRetour.tags = doc.tags ? doc.tags : '';
     docRetour.type = doc.type;
+    docRetour.email = doc.email ? doc.email : '';
+    docRetour.url = doc.url ? doc.url : '';
+    docRetour.fixe = doc.fixe ? doc.fixe : '';
+    docRetour.mobile = doc.mobile ? doc.mobile : '';
+    docRetour.fax = doc.fax ? doc.fax : '';
   }
   if(doc.block === 'when'){
     docRetour.allDay = doc.allDay;
@@ -83,38 +90,54 @@ if(doc.typeElement === 'citoyens'){
     docRetour.endDate=moment(doc.endDate).format();
   }
 }else if(doc.typeElement === 'projects'){
-  if(doc.block === 'description'){
+  if(doc.block === 'descriptions'){
     docRetour.description = doc.description ? doc.description : '';
     docRetour.shortDescription = doc.shortDescription ? doc.shortDescription : '';
   }
-  if(doc.block === 'contact'){
-    docRetour.email = doc.email ? doc.email : '';
-    docRetour.url = doc.url ? doc.url : '';
-    docRetour.fixe = doc.fixe ? doc.fixe : '';
-    docRetour.mobile = doc.mobile ? doc.mobile : '';
-    docRetour.fax = doc.fax ? doc.fax : '';
+  if(doc.block === 'network'){
+    docRetour.instagram = doc.instagram ? doc.instagram : '';
+    docRetour.skype = doc.skype ? doc.skype : '';
+    docRetour.github = doc.github ? doc.github : '';
+    docRetour.gpplus = doc.gpplus ? doc.gpplus : '';
+    docRetour.twitter = doc.twitter ? doc.twitter : '';
+    docRetour.facebook = doc.facebook ? doc.facebook : '';
   }
   if(doc.block === 'info'){
     docRetour.name = doc.name;
     docRetour.tags = doc.tags ? doc.tags : '';
     docRetour.avancement = doc.avancement ? doc.avancement : '';
-  }
-}else if(doc.typeElement === 'organizations'){
-  if(doc.block === 'description'){
-    docRetour.description = doc.description ? doc.description : '';
-    docRetour.shortDescription = doc.shortDescription ? doc.shortDescription : '';
-  }
-  if(doc.block === 'contact'){
     docRetour.email = doc.email ? doc.email : '';
     docRetour.url = doc.url ? doc.url : '';
     docRetour.fixe = doc.fixe ? doc.fixe : '';
     docRetour.mobile = doc.mobile ? doc.mobile : '';
     docRetour.fax = doc.fax ? doc.fax : '';
   }
+  if(doc.block === 'when'){
+    docRetour.startDate=moment(doc.startDate).format();
+    docRetour.endDate=moment(doc.endDate).format();
+  }
+}else if(doc.typeElement === 'organizations'){
+  if(doc.block === 'descriptions'){
+    docRetour.description = doc.description ? doc.description : '';
+    docRetour.shortDescription = doc.shortDescription ? doc.shortDescription : '';
+  }
+  if(doc.block === 'network'){
+    docRetour.instagram = doc.instagram ? doc.instagram : '';
+    docRetour.skype = doc.skype ? doc.skype : '';
+    docRetour.github = doc.github ? doc.github : '';
+    docRetour.gpplus = doc.gpplus ? doc.gpplus : '';
+    docRetour.twitter = doc.twitter ? doc.twitter : '';
+    docRetour.facebook = doc.facebook ? doc.facebook : '';
+  }
   if(doc.block === 'info'){
     docRetour.name = doc.name;
     docRetour.tags = doc.tags ? doc.tags : '';
     docRetour.type = doc.type;
+    docRetour.email = doc.email ? doc.email : '';
+    docRetour.url = doc.url ? doc.url : '';
+    docRetour.fixe = doc.fixe ? doc.fixe : '';
+    docRetour.mobile = doc.mobile ? doc.mobile : '';
+    docRetour.fax = doc.fax ? doc.fax : '';
   }
 }
 } else if(scope === 'events'){
@@ -132,6 +155,9 @@ if(doc.typeElement === 'citoyens'){
   docRetour.endDate=moment(doc.endDate).format();
   docRetour.organizerId = doc.organizerId;
   docRetour.organizerType = doc.organizerType;
+  if(doc.preferences){
+  docRetour.preferences = doc.preferences;
+  }
 } else if(scope === 'organizations'){
   docRetour.name = doc.name;
   docRetour.description = doc.description ? doc.description : '';
@@ -139,12 +165,20 @@ if(doc.typeElement === 'citoyens'){
   docRetour.role = doc.role;
   docRetour.email = doc.email ? doc.email : '';
   docRetour.url = doc.url ? doc.url : '';
+  if(doc.preferences){
+  docRetour.preferences = doc.preferences;
+  }
 } else if(scope === 'projects'){
   docRetour.name = doc.name;
   docRetour.description = doc.description ? doc.description : '';
   docRetour.url = doc.url ? doc.url : '';
   docRetour.startDate = doc.startDate ? moment(doc.startDate).format() : '';
   docRetour.endDate= doc.endDate ? moment(doc.endDate).format() : '';
+  docRetour.parentId = doc.parentId;
+  docRetour.parentType = doc.parentType;
+  if(doc.preferences){
+  docRetour.preferences = doc.preferences;
+  }
 } else {
   if(doc.name){
   docRetour.name = doc.name;
@@ -437,15 +471,18 @@ followEntity (connectId,parentType,childId){
     throw new Meteor.Error("not-authorized");
   }
   let doc={};
+
   doc.parentId=connectId;
   doc.childType="citoyens";
-  if(parentType=="organizations"){
+
+  /*if(parentType=="organizations"){
   doc.connectType="member";
   }else if(parentType=="projects"){
   doc.connectType="contributor";
   }else if(parentType=="citoyens"){
   doc.connectType="followers";
-  }
+}*/
+
   doc.childId = (typeof childId !== 'undefined') ?  childId : this.userId;
   doc.parentType=parentType;
   var retour = apiCommunecter.postPixel("link","follow",doc);
@@ -477,7 +514,7 @@ followEntity (connectId,parentType,childId){
     var retour = apiCommunecter.postPixel("link","connect",doc);
     return retour;
   },
-  disconnectEntity (connectId,parentType,childId){
+  disconnectEntity (connectId,parentType,connectType,childId,childType){
     check(connectId, String);
     check(parentType, String);
     check(parentType, Match.Where(function(name) {
@@ -487,21 +524,58 @@ followEntity (connectId,parentType,childId){
       throw new Meteor.Error("not-authorized");
     }
 
+    /*childId:5534fd9da1aa14201b0041cb
+    childType:citoyens
+    parentType:projects
+    parentId:590c5877dd0452330ca1fa1f
+    connectType:followers*/
+
+
     let doc={};
     doc.parentId=connectId;
-    doc.childType="citoyens";
+    doc.childType = (typeof childType !== 'undefined' && childType !== null) ?  childType : 'citoyens';
     if(parentType=="organizations"){
-    doc.connectType="members";
+    doc.connectType = (typeof connectType !== 'undefined' && connectType !== null) ?  connectType : 'members';
     }else if(parentType=="projects"){
-    doc.connectType="contributors";
+    doc.connectType = (typeof connectType !== 'undefined' && connectType !== null) ?  connectType : 'contributors';
     }else if(parentType=="citoyens"){
-    doc.connectType="followers";
+    doc.connectType = (typeof connectType !== 'undefined' && connectType !== null) ?  connectType : 'followers';
     }else if(parentType=="events"){
-    doc.connectType="attendees";
+    doc.connectType = (typeof connectType !== 'undefined' && connectType !== null) ?  connectType : 'attendees';
     }
-    doc.childId = (typeof childId !== 'undefined') ?  childId : this.userId;
+    doc.childId = (typeof childId !== 'undefined' && childId !== null) ?  childId : this.userId;
     doc.parentType=parentType;
+    console.log(doc);
     var retour = apiCommunecter.postPixel("link","disconnect",doc);
+    return retour;
+  },
+  validateEntity (parentId,parentType,childId,childType,linkOption){
+    check(parentId, String);
+    check(childId, String);
+    check(childType, String);
+    check(linkOption, String);
+    check(parentType, String);
+    check(parentType, Match.Where(function(name) {
+      return _.contains(['events', 'projects','organizations','citoyens'], name);
+    }));
+    check(childType, Match.Where(function(name) {
+      return _.contains(['events', 'projects','organizations','citoyens'], name);
+    }));
+    if (!this.userId) {
+      throw new Meteor.Error("not-authorized");
+    }
+    const collection = nameToCollection(parentType);
+    if(!collection.findOne({_id:new Mongo.ObjectID(parentId)}).isAdmin(this.userId)){
+      throw new Meteor.Error("not-authorized");
+    }
+
+    let doc={};
+    doc.parentId = parentId;
+    doc.parentType=parentType;
+    doc.childId = childId;
+    doc.childType = childType;
+    doc.linkOption = linkOption;
+    var retour = apiCommunecter.postPixel("link","validate",doc);
     return retour;
   },
   inviteattendeesEvent (doc){
@@ -670,28 +744,28 @@ updateBlock (modifier,documentId){
 
   if(modifier["$set"].typeElement === 'citoyens'){
     check(modifier["$set"].block, Match.Where(function(name) {
-      return _.contains(['description','contact','info','locality','preferences'], name);
+      return _.contains(['descriptions','network','info','locality','preferences'], name);
     }));
     //block description,contact,info
     BlockCitoyensRest[modifier["$set"].block].clean(modifier["$set"]);
     check(modifier["$set"], BlockCitoyensRest[modifier["$set"].block]);
   } else if(modifier["$set"].typeElement === 'events'){
     check(modifier["$set"].block, Match.Where(function(name) {
-      return _.contains(['description','contact','info','when','locality','preferences'], name);
+      return _.contains(['descriptions','network','info','when','locality','preferences'], name);
     }));
     //block description,contact,info,when
     BlockEventsRest[modifier["$set"].block].clean(modifier["$set"]);
     check(modifier["$set"], BlockEventsRest[modifier["$set"].block]);
   } else if(modifier["$set"].typeElement === 'organizations'){
     check(modifier["$set"].block, Match.Where(function(name) {
-      return _.contains(['description','contact','info','locality','preferences'], name);
+      return _.contains(['descriptions','network','info','locality','preferences'], name);
     }));
     //block description,contact,info,when
     BlockOrganizationsRest[modifier["$set"].block].clean(modifier["$set"]);
     check(modifier["$set"], BlockOrganizationsRest[modifier["$set"].block]);
   } else if(modifier["$set"].typeElement === 'projects'){
     check(modifier["$set"].block, Match.Where(function(name) {
-      return _.contains(['description','contact','info','when','locality','preferences'], name);
+      return _.contains(['descriptions','network','info','when','locality','preferences'], name);
     }));
     //block description,contact,info,when
     BlockProjectsRest[modifier["$set"].block].clean(modifier["$set"]);
@@ -757,15 +831,51 @@ updateCitoyen (modifier,documentId){
   return retour;
 },
   insertNew (doc){
-      check(doc, SchemasNewsRest);
+      check(doc.parentType, Match.Where(function(name) {
+        return _.contains(['events', 'projects','organizations','citoyens'], name);
+      }));
+      check(doc,SchemasNewsRestBase[doc.parentType]);
+
     if (!this.userId) {
       throw new Meteor.Error("not-authorized");
     }
-    if(!doc.parentType){
-      doc.parentType="events";
-    }
-    if(!doc.scope){
-      doc.scope="public";
+    if(doc.parentType === 'citoyens'){
+      if (this.userId !== doc.parentId) {
+        throw new Meteor.Error("not-authorized");
+      }
+      if(!doc.scope){
+        doc.scope="restricted";
+      }
+    } else if(doc.parentType === 'organizations'){
+      const collection = nameToCollection(doc.parentType);
+      const autorize = collection.findOne({_id:new Mongo.ObjectID(doc.parentId)});
+      if (autorize.isAdmin() || autorize.isMembers(this.userId)) {
+      }else{
+        throw new Meteor.Error("not-authorized");
+      }
+      if(!doc.scope){
+        doc.scope="restricted";
+      }
+    } else if(doc.parentType === 'projects'){
+      const collection = nameToCollection(doc.parentType);
+      const autorize = collection.findOne({_id:new Mongo.ObjectID(doc.parentId)});
+      if (autorize.isAdmin() || autorize.isContributors(this.userId)) {
+      }else{
+        throw new Meteor.Error("not-authorized");
+      }
+      if(!doc.scope){
+        doc.scope="restricted";
+      }
+    } else if(doc.parentType === 'events'){
+      const collection = nameToCollection(doc.parentType);
+      const autorize = collection.findOne({_id:new Mongo.ObjectID(doc.parentId)});
+      if (autorize.isAdmin() || autorize.isAttendees(this.userId)) {
+      }else{
+        throw new Meteor.Error("not-authorized");
+      }
+      if(!doc.scope){
+        doc.scope="restricted";
+      }
     }
 
     var retour = apiCommunecter.postPixel("news","save",doc);
@@ -900,16 +1010,22 @@ doc.docId=newsDoc._id._str;
   insertEvent (doc){
     SchemasEventsRest.clean(doc);
     check(doc, SchemasEventsRest);
+    check(doc.organizerType, Match.Where(function(name) {
+      return _.contains(['projects','organizations','citoyens'], name);
+    }));
     console.log(doc);
     if (!this.userId) {
       throw new Meteor.Error("not-authorized");
     }
-
-    if(!doc.organizerId){
-      doc.organizerId=this.userId;
-    }
-    if(!doc.organizerType){
-      doc.organizerType="citoyens";
+    if(doc.organizerType === 'citoyens'){
+      if (this.userId !== doc.organizerId ) {
+        throw new Meteor.Error("not-authorized");
+      }
+    } else if(doc.organizerType === 'projects' || doc.organizerType === 'organizations'){
+      const collection = nameToCollection(doc.organizerType);
+      if (!collection.findOne({_id:new Mongo.ObjectID(doc.organizerId)}).isAdmin()) {
+        throw new Meteor.Error("not-authorized");
+      }
     }
 
     const docRetour = baseDocRetour({},doc,'events');
@@ -924,18 +1040,24 @@ doc.docId=newsDoc._id._str;
   updateEvent (modifier,documentId){
     SchemasEventsRest.clean(modifier["$set"]);
     check(modifier["$set"], SchemasEventsRest);
+    check(modifier["$set"].organizerType, Match.Where(function(name) {
+      return _.contains(['projects','organizations','citoyens'], name);
+    }));
     if (!this.userId) {
       throw new Meteor.Error("not-authorized");
     }
+    if(modifier["$set"].organizerType === 'citoyens'){
+      if (this.userId !== modifier["$set"].organizerId ) {
+        throw new Meteor.Error("not-authorized");
+      }
+    } else if(modifier["$set"].organizerType === 'projects' || modifier["$set"].organizerType === 'organizations'){
+      const collection = nameToCollection(modifier["$set"].organizerType);
+      if (!collection.findOne({_id:new Mongo.ObjectID(modifier["$set"].organizerId)}).isAdmin()) {
+        throw new Meteor.Error("not-authorized");
+      }
+    }
     if (!Events.findOne({_id:new Mongo.ObjectID(documentId)}).isAdmin()) {
       throw new Meteor.Error("not-authorized");
-    }
-
-    if(!modifier["$set"].organizerId){
-      modifier["$set"].organizerId=this.userId;
-    }
-    if(!modifier["$set"].organizerType){
-      modifier["$set"].organizerType="citoyens";
     }
 
     const docRetour = baseDocRetour({},modifier["$set"],'events');
@@ -951,8 +1073,21 @@ doc.docId=newsDoc._id._str;
   insertProject (doc){
     SchemasProjectsRest.clean(doc);
     check(doc, SchemasProjectsRest);
+    check(doc.parentType, Match.Where(function(name) {
+      return _.contains(['organizations','citoyens'], name);
+    }));
     if (!this.userId) {
       throw new Meteor.Error("not-authorized");
+    }
+    if(doc.parentType === 'citoyens'){
+      if (this.userId !== doc.parentId ) {
+        throw new Meteor.Error("not-authorized");
+      }
+    } else if(doc.parentType === 'organizations'){
+      const collection = nameToCollection(doc.parentType);
+      if (!collection.findOne({_id:new Mongo.ObjectID(doc.parentId)}).isAdmin()) {
+        throw new Meteor.Error("not-authorized");
+      }
     }
 
     const docRetour = baseDocRetour({},doc,'projects');
@@ -967,8 +1102,21 @@ doc.docId=newsDoc._id._str;
   updateProject (modifier,documentId){
     SchemasProjectsRest.clean(modifier["$set"]);
     check(modifier["$set"], SchemasProjectsRest);
+    check(modifier["$set"].parentType, Match.Where(function(name) {
+      return _.contains(['organizations','citoyens'], name);
+    }));
     if (!this.userId) {
       throw new Meteor.Error("not-authorized");
+    }
+    if(modifier["$set"].parentType === 'citoyens'){
+      if (this.userId !== modifier["$set"].parentId ) {
+        throw new Meteor.Error("not-authorized");
+      }
+    } else if(modifier["$set"].parentType === 'organizations'){
+      const collection = nameToCollection(modifier["$set"].parentType);
+      if (!collection.findOne({_id:new Mongo.ObjectID(modifier["$set"].parentId)}).isAdmin()) {
+        throw new Meteor.Error("not-authorized");
+      }
     }
     if (!Projects.findOne({_id:new Mongo.ObjectID(documentId)}).isAdmin()) {
       throw new Meteor.Error("not-authorized");
@@ -1092,7 +1240,7 @@ doc.docId=newsDoc._id._str;
     let insee = Cities.findOne({insee: user.city});
 
     try {
-      var response = HTTP.call( 'POST', Meteor.settings.endpoint+'/communecter/person/register', {
+      var response = HTTP.call( 'POST', `${Meteor.settings.endpoint}/${Meteor.settings.module}/person/register`, {
         params: {
           "name": user.name,
           "email": user.email,
@@ -1259,50 +1407,54 @@ pushUser (title,text,payload,query,badge){
   });
 },
 markRead (notifId) {
+  check(notifId, String);
   if (!this.userId) {
     throw new Meteor.Error("not-authorized");
   }
-  // //console.log('mark as read click') // for testing
-  /*return NotificationHistory.update({
-    '_id': notifId
-  }, {
-    $addToSet: {
-      'dismissals': this.userId
-    }
-  })*/
+  const notif = {};
+  notif.id = notifId;
+  var retour = apiCommunecter.postPixel("notification","marknotificationasread",notif);
+  return retour;
+},
+markSeen (notifId) {
+  check(notifId, String);
+  if (!this.userId) {
+    throw new Meteor.Error("not-authorized");
+  }
+  const notif = {};
+  notif.id = notifId;
+  var retour = apiCommunecter.postPixel("notification","update",notif);
+  return retour;
 },
 alertCount (){
   if (!this.userId) {
     throw new Meteor.Error("not-authorized");
   }
-  return ActivityStream.find({
-		'notify.id': {
-			$in: [this.userId]
-		}
-	}, {
-		sort: {
-			'created': 1
-		}
-	}).count();
+  return ActivityStream.api.queryUnseen().count();
 },
 registerClick (notifId) {
   if (!this.userId) {
     throw new Meteor.Error("not-authorized");
   }
-  // //console.log('notification click') // for testing
-  /*return NotificationHistory.update({
-    '_id': notifId
-  }, {
-    $addToSet: {
-      'clicks': this.userId
-    }
-  })*/
 },
 allRead () {
   if (!this.userId) {
     throw new Meteor.Error("not-authorized");
   }
-  var retour = apiCommunecter.postPixel("notification","markallnotificationasread",{});
+  const notif = {};
+  notif.action = 'read';
+  notif.all = true;
+  var retour = apiCommunecter.postPixel("notification","update",notif);
+  return retour;
+},
+allSeen () {
+  if (!this.userId) {
+    throw new Meteor.Error("not-authorized");
+  }
+  const notif = {};
+  notif.action = 'seen';
+  notif.all = true;
+  var retour = apiCommunecter.postPixel("notification","update",notif);
   return retour;
 },
 isEmailValid: function(address) {
@@ -1323,4 +1475,29 @@ isEmailValid: function(address) {
     return true;
   }
 }
+});
+
+export const userLocale = new ValidatedMethod({
+  name: 'userLocale',
+  validate: new SimpleSchema({
+    language: { type: String }
+  }).validator(),
+  run({ language }) {
+    this.unblock();
+    if (!this.userId) {
+      throw new Meteor.Error('not-authorized');
+    }
+    console.log(language);
+    if (Meteor.users.update({
+      _id: this.userId
+    }, {
+      $set: {
+        'profile.language': language
+      }
+    })) {
+      return true;
+    }
+
+    return false;
+  }
 });

@@ -34,7 +34,7 @@
     {{#if isFieldArray atts=this}}
       {{> afArrayField_ionic}}
     {{else}}
-      {{> afFormGroup_ionic groupAtts}}
+      {{> afFormGroup_ionic groupAtts atts=this}}
     {{/if}}
   {{/if}}
 </template>
@@ -73,7 +73,7 @@
 
     {{#if afArrayFieldHasLessThanMaximum name=this.atts.name minCount=this.atts.minCount maxCount=this.atts.maxCount}}
       <button type="button" class="button button-clear button-small pull-right autoform-add-item" data-autoform-field="{{this.atts.name}}" data-autoform-minCount="{{this.atts.minCount}}" data-autoform-maxCount="{{this.atts.maxCount}}">
-        Add <span class="icon ion-plus"></span>
+         <span class="icon ion-plus"></span>
       </button>
     {{/if}}
   </div>
@@ -83,12 +83,15 @@
     </div>
   {{/if}}
   {{#afEachArrayItem name=this.atts.name minCount=this.atts.minCount maxCount=this.atts.maxCount}}
-    <div class="card autoform-array-item">
+    <div class="item item-input autoform-array-item">
+      {{#if ../atts.icon}}
+      <i class="icon {{../atts.icon}} placeholder-icon"></i>
+      {{/if}}
       {{> afQuickField name=this.name label=false options=afOptionsFromSchema}}
       {{#if afArrayFieldHasMoreThanMinimum name=../atts.name minCount=../atts.minCount maxCount=../atts.maxCount}}
         <div class="item item-divider">
           <button type="button" class="button button-clear button-small pull-right autoform-remove-item">
-            Remove <span class="icon ion-close"></span>
+             <span class="icon ion-close"></span>
           </button>
         </div>
       {{/if}}
@@ -267,6 +270,9 @@
 </template>
 
 <template name="afInputText_ionic">
+  {{#if atts.icon}}
+  <i class="icon {{atts.icon}} {{#if this.value}}positive{{else}}dark{{/if}} placeholder-icon"></i>
+  {{/if}}
   <input type="text" value="{{this.value}}" {{atts}}/>
 </template>
 
@@ -287,14 +293,23 @@
 </template>
 
 <template name="afInputDateTime_ionic">
+  {{#if atts.icon}}
+  <i class="icon {{atts.icon}} {{#if this.value}}positive{{else}}dark{{/if}} placeholder-icon"></i>
+  {{/if}}
   <input type="datetime" value="{{this.value}}" {{atts}}/>
 </template>
 
 <template name="afInputDateTimeLocal_ionic">
+  {{#if atts.icon}}
+  <i class="icon {{atts.icon}} {{#if this.value}}positive{{else}}dark{{/if}} placeholder-icon"></i>
+  {{/if}}
   <input type="datetime-local" value="{{this.value}}" {{atts}}/>
 </template>
 
 <template name="afInputDate_ionic">
+  {{#if atts.icon}}
+  <i class="icon {{atts.icon}} {{#if this.value}}positive{{else}}dark{{/if}} placeholder-icon"></i>
+  {{/if}}
   <input type="date" value="{{this.value}}" {{atts}}/>
 </template>
 
@@ -311,6 +326,9 @@
 </template>
 
 <template name="afInputNumber_ionic">
+  {{#if atts.icon}}
+  <i class="icon {{atts.icon}} {{#if this.value}}positive{{else}}dark{{/if}} placeholder-icon"></i>
+  {{/if}}
   <input type="number" value="{{this.value}}" {{atts}}/>
 </template>
 
@@ -319,21 +337,36 @@
 </template>
 
 <template name="afInputEmail_ionic">
+  {{#if atts.icon}}
+  <i class="icon {{atts.icon}} {{#if this.value}}positive{{else}}dark{{/if}} placeholder-icon"></i>
+  {{/if}}
   <input type="email" value="{{this.value}}" {{atts}}/>
 </template>
 
 <template name="afInputUrl_ionic">
+  {{#if atts.icon}}
+  <i class="icon {{atts.icon}} {{#if this.value}}positive{{else}}dark{{/if}} placeholder-icon"></i>
+  {{/if}}
   <input type="url" value="{{this.value}}" {{atts}}/>
 </template>
 
 <template name="afInputSearch_ionic">
+  {{#if atts.icon}}
+  <i class="icon {{atts.icon}} {{#if this.value}}positive{{else}}dark{{/if}} placeholder-icon"></i>
+  {{/if}}
   <input type="search" value="{{this.value}}" {{atts}}/>
 </template>
 
 <template name="afInputTel_ionic">
+  {{#if atts.icon}}
+  <i class="icon {{atts.icon}} {{#if this.value}}positive{{else}}dark{{/if}} placeholder-icon"></i>
+  {{/if}}
   <input type="tel" value="{{this.value}}" {{atts}}/>
 </template>
 
 <template name="afInputColor_ionic">
+  {{#if atts.icon}}
+  <i class="icon {{atts.icon}} {{#if this.value}}positive{{else}}dark{{/if}} placeholder-icon"></i>
+  {{/if}}
   <input type="color" value="{{this.value}}" {{atts}}/>
 </template>

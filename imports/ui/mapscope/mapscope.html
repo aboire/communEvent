@@ -23,7 +23,7 @@
 </template>
 
 <template name="mapscopepopup">
-  <h2><a href="{{pathFor 'newsList' _id=this._id._str scope=scopeVar}}">{{name}}</a></h2>
+  <h2><a href="{{pathFor 'detailList' _id=this._id._str scope=scopeVar}}">{{name}}</a></h2>
   <span class="badge {{#if isStart}}badge-balanced{{else}}badge-dark{{/if}}"><i class="icon ion-person"></i> {{countPopMap}}</span>
   {{#if startDate}}
   <p>

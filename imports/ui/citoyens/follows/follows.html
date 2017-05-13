@@ -23,7 +23,7 @@
       {{#each citoyens.listFollows}}
       <div class="item item-avatar item-button-right animated out">
         {{> imgDoc}}
-        <h2><a href="{{pathFor 'newsList' _id=_id._str scope='citoyens'}}" class="dark">{{name}}</a></h2>
+        <h2><a href="{{pathFor 'detailList' _id=_id._str scope='citoyens'}}" class="dark">{{name}}</a></h2>
         {{#if onlineFollows}}
         <span class="badge badge-balanced">{{_ "online"}}</span>
         {{else}}

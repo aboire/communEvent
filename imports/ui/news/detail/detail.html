@@ -22,7 +22,13 @@
       {{#if imageDoc authorNews._id._str}}
       {{> imgDoc imageDoc=(imageDoc authorNews._id._str) resized="80x80"}}
       {{/if}}
-      <h2><a href="{{pathFor 'newsList' _id=authorNews._id._str scope='citoyens'}}" class="dark">{{#if name}}{{name}}{{else}}{{authorNews.name}}{{/if}}</a></h2>
+      <h2>
+        {{#if equals targetIsAuthor 'true'}}
+        <a href="{{pathFor 'detailList' _id=target.id scope=target.type}}" class="dark">{{#if name}}{{name}}{{else}}{{authorNews.name}}{{/if}}</a>
+        {{else}}
+        <a href="{{pathFor 'detailList' _id=authorNews._id._str scope='citoyens'}}" class="dark">{{#if name}}{{name}}{{else}}{{authorNews.name}}{{/if}}</a>
+        {{/if}}
+      </h2>
       <p><i class="icon ion-clock"></i> {{livestamp created}}</p>
     </div>
     {{#if photoNewsAlbums}}

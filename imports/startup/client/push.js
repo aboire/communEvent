@@ -1,29 +1,19 @@
 import { Meteor } from 'meteor/meteor';
 import { Push } from 'meteor/raix:push';
 import { Router } from 'meteor/iron:router';
+import { Tracker } from 'meteor/tracker';
 
 import { ActivityStream } from '../../api/activitystream.js';
 
 Meteor.startup(function () {
 	if (Meteor.isDesktop){
 		console.log('DESKTOP');
-		let initNotifystart = ActivityStream.find().observe({
-			added: function(notification) {
-				if(!initNotifystart) return ;
-				console.log(ActivityStream.find({}).count());
-				Desktop.send('systemNotifications', 'setBadge', ActivityStream.find({}).count());
-			},
-			changed: function(notification) {
-				//console.log(NotificationHistory.find({}).count());
-				Desktop.send('systemNotifications', 'setBadge', ActivityStream.find({}).count());
-			},
-			removed: function(notification) {
-				//console.log(NotificationHistory.find({}).count());
-				Desktop.send('systemNotifications', 'setBadge', ActivityStream.find({}).count());
-			}
-		});
 
-		var initNotifystart = ActivityStream.find({'created': {$gt: new Date()}}).observe({
+		const query = {};
+		query['created'] = {$gt: new Date()};
+		const options = {};
+		options['sort'] = {created: 1};
+		var initNotifystart = ActivityStream.find(query,options).observe({
 			added: function(notification) {
 				if(!initNotifystart) return ;
 				console.log(Desktop.getAssetUrl('\___desktop\icon.png'));
@@ -51,22 +41,6 @@ Desktop.on('systemNotifications', 'notificationClicked', (sender, data) => {
 
 	} else {
 		if(Meteor.isCordova){
-			let initNotifystart = ActivityStream.find().observe({
-				added: function(notification) {
-					if(!initNotifystart) return ;
-					//console.log(NotificationHistory.find({}).count());
-					Push.setBadge(ActivityStream.find({}).count());
-				},
-				changed: function(notification) {
-					//console.log(NotificationHistory.find({}).count());
-					Push.setBadge(ActivityStream.find({}).count());
-				},
-				removed: function(notification) {
-					//console.log(NotificationHistory.find({}).count());
-					Push.setBadge(ActivityStream.find({}).count());
-				}
-			});
-
 			Push.Configure({
 				android: {
 					senderID: 183063213318,
@@ -74,9 +48,9 @@ Desktop.on('systemNotifications', 'notificationClicked', (sender, data) => {
 					badge: true,
 					sound: true,
 					vibrate: true,
-					clearNotifications: true
-					// icon: '',
-					// iconColor: ''
+					clearNotifications: true,
+					icon: 'ic_stat_co_24',
+					iconColor: '#6B97AF'
 				},
 				ios: {
 					alert: true,
@@ -117,24 +91,13 @@ Desktop.on('systemNotifications', 'notificationClicked', (sender, data) => {
 				}
 
 				if (Notification.permission === "granted") {
-					var initNotifystart = ActivityStream.find({'created': {$gt: new Date()}}).observe({
+						let query = {};
+						query['created'] = {$gt: new Date()};
+						let options = {};
+						options['sort'] = {created: 1};
+					var initNotifystart = ActivityStream.find(query,options).observe({
 						added: function(notification) {
 							if(!initNotifystart) return ;
-							//console.log(NotificationHistory.find({}).count());
-						 /*Electrify.call('setBadgeCount',[NotificationHistory.find({}).count()], function(err, msg) {
-							 if(err){
-								console.log(err);
-							 }else{
-								console.log(msg);
-							 }
-						 });*/
-						 /*Electrify.call('showDoneNotification',[notification], function(err, msg) {
-							 if(err){
-								console.log(err);
-							 }else{
-								console.log(msg);
-							 }
-						 });*/
 
 							let options = {
 								body: notification.notify.displayName,
@@ -174,5 +137,20 @@ Desktop.on('systemNotifications', 'notificationClicked', (sender, data) => {
 		}
 	}
 
+});
 
+Tracker.autorun(() => {
+	if(Meteor.userId()){
+	if (Counts.has(`notifications.${Meteor.userId()}.Unseen`)) {
+		if (Meteor.isDesktop){
+			Desktop.send('systemNotifications', 'setBadge', Counts.get(`notifications.${Meteor.userId()}.Unseen`));
+		} else {
+			if(Meteor.isCordova){
+				Push.setBadge(Counts.get(`notifications.${Meteor.userId()}.Unseen`));
+			} else {
+				console.log(Counts.get(`notifications.${Meteor.userId()}.Unseen`));
+			}
+		}
+	}
+}
 });

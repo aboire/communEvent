@@ -9,13 +9,13 @@ import { Router } from 'meteor/iron:router';
 import { AutoForm } from 'meteor/aldeed:autoform';
 import { Location } from 'meteor/djabatav:geolocation-plus';
 import { Mongo } from 'meteor/mongo';
+import { Random } from 'meteor/random';
 import { HTTP } from 'meteor/http';
-import { Mapbox } from 'meteor/pauloborges:mapbox';
+import { Mapbox } from 'meteor/communecter:mapbox';
 
 
 //collections
 import { Citoyens,BlockCitoyensRest } from '../../api/citoyens.js';
-import { NotificationHistory } from '../../api/notification_history.js';
 import { Cities } from '../../api/cities.js';
 
 //submanager
@@ -25,8 +25,9 @@ import '../map/map.js';
 
 import './list.html';
 
-import { pageSession } from '../../api/client/reactive.js';
+import { pageSession,geoId } from '../../api/client/reactive.js';
 import { position } from '../../api/client/position.js';
+import { searchQuery,queryGeoFilter } from '../../api/helpers.js';
 
 
 Template.listCitoyens.onCreated(function () {
@@ -86,11 +87,13 @@ Template.listCitoyens.onRendered(function() {
             updatedAt : new Date()
           });
           //clear cache
-          listEventsSubs.clear();
+          /*listEventsSubs.clear();
           listOrganizationsSubs.clear();
           listProjectsSubs.clear();
           listCitoyensSubs.clear();
-          dashboardSubs.clear();
+          dashboardSubs.clear();*/
+          const geoIdRandom = Random.id();
+          geoId.set('geoId', geoIdRandom);
         }
       },
       onCancel: function(){
@@ -109,12 +112,9 @@ Template.listCitoyens.helpers({
     let inputDate = new Date();
     let searchCitoyens= pageSession.get('searchCitoyens');
     let query={};
+    query = queryGeoFilter(query);
     if(searchCitoyens){
-      if ( searchCitoyens.charAt( 0 ) == '#' ) {
-        query['name']={$regex : searchCitoyens, '$options' : 'i'}
-      }else{
-        query['name']={$regex : searchCitoyens, '$options' : 'i'}
-      }
+      query = searchQuery(query,searchCitoyens);
     }
       query['_id']={$ne: new Mongo.ObjectID(Meteor.userId())};
     return Citoyens.find(query);
@@ -123,28 +123,15 @@ Template.listCitoyens.helpers({
     let inputDate = new Date();
     let searchCitoyens= pageSession.get('searchCitoyens');
     let query={};
+    query = queryGeoFilter(query);
     if(searchCitoyens){
-      query['name']={$regex : searchCitoyens, '$options' : 'i'}
+      query = searchQuery(query,searchCitoyens);
     }
     query['_id']={$ne: new Mongo.ObjectID(Meteor.userId())};
     return Citoyens.find(query).count();
   },
   searchCitoyens (){
     return pageSession.get('searchCitoyens');
-  },
-  notificationsCountOld (){
-    let notificationsCountOld = pageSession.get('notificationsCount');
-    pageSession.set('notificationsCount',null);
-    let notificationsCount = NotificationHistory.find({}).count();
-    if(notificationsCountOld<notificationsCount){
-      pageSession.set('notificationsCount',notificationsCount);
-      return true;
-    }else{
-      return false;
-    }
-  },
-  notificationsCount () {
-    return NotificationHistory.find({}).count()
   },
   city (){
     return Session.get('city');
@@ -153,10 +140,16 @@ Template.listCitoyens.helpers({
   return Template.instance().ready.get();
 },
 dataReadyAll() {
-return Template.instance().ready.get() && Citoyens.find({_id: {$ne: new Mongo.ObjectID(Meteor.userId())}}).count() === Counts.get(`countScopeGeo.citoyens`);
+  let query={};
+  query = queryGeoFilter(query);
+  query['_id']={$ne: new Mongo.ObjectID(Meteor.userId())};
+return Template.instance().ready.get() && Citoyens.find(query).count() === Counts.get(`countScopeGeo.citoyens`);
 },
 dataReadyPourcentage() {
-return  `${Citoyens.find({_id: {$ne: new Mongo.ObjectID(Meteor.userId())}}).count()}/${Counts.get('countScopeGeo.citoyens')}`;
+  let query={};
+  query = queryGeoFilter(query);
+  query['_id']={$ne: new Mongo.ObjectID(Meteor.userId())};
+return  `${Citoyens.find(query).count()}/${Counts.get('countScopeGeo.citoyens')}`;
 }
 });
 
@@ -308,36 +301,19 @@ Template.citoyensBlockEdit.helpers({
     let citoyen = Citoyens.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
     let citoyenEdit = {};
     citoyenEdit._id = citoyen._id._str;
-    if(Router.current().params.block === 'description'){
-      citoyenEdit.description = citoyen.description;
-      citoyenEdit.shortDescription = citoyen.shortDescription;
+    if(Router.current().params.block === 'descriptions'){
+      if(citoyen.description){
+        citoyenEdit.description = citoyen.description;
+      }
+      if(citoyen.shortDescription){
+        citoyenEdit.shortDescription = citoyen.shortDescription;
+      }
     }else if(Router.current().params.block === 'info'){
       citoyenEdit.name = citoyen.name;
       citoyenEdit.username = citoyen.username;
       if(citoyen.tags){
         citoyenEdit.tags = citoyen.tags;
       }
-      if(citoyen.socialNetwork){
-        if(citoyen.socialNetwork.telegram){
-        citoyenEdit.telegramAccount = citoyen.socialNetwork.telegram;
-      }
-      if(citoyen.socialNetwork.skype){
-        citoyenEdit.skypeAccount = citoyen.socialNetwork.skype;
-      }
-      if(citoyen.socialNetwork.googleplus){
-        citoyenEdit.gpplusAccount = citoyen.socialNetwork.googleplus;
-      }
-      if(citoyen.socialNetwork.github){
-        citoyenEdit.githubAccount = citoyen.socialNetwork.github;
-      }
-      if(citoyen.socialNetwork.twitter){
-        citoyenEdit.twitterAccount = citoyen.socialNetwork.twitter;
-      }
-      if(citoyen.socialNetwork.facebook){
-        citoyenEdit.facebookAccount = citoyen.socialNetwork.facebook;
-      }
-      }
-    }else if(Router.current().params.block === 'contact'){
       citoyenEdit.email = citoyen.email;
       citoyenEdit.url = citoyen.url;
       if(citoyen.telephone){
@@ -352,6 +328,27 @@ Template.citoyensBlockEdit.helpers({
         }
       }
       citoyenEdit.birthDate = citoyen.birthDate;
+    }else if(Router.current().params.block === 'network'){
+      if(citoyen.socialNetwork){
+        if(citoyen.socialNetwork.telegram){
+        citoyenEdit.telegram = citoyen.socialNetwork.telegram;
+      }
+      if(citoyen.socialNetwork.skype){
+        citoyenEdit.skype = citoyen.socialNetwork.skype;
+      }
+      if(citoyen.socialNetwork.googleplus){
+        citoyenEdit.gpplus = citoyen.socialNetwork.googleplus;
+      }
+      if(citoyen.socialNetwork.github){
+        citoyenEdit.github = citoyen.socialNetwork.github;
+      }
+      if(citoyen.socialNetwork.twitter){
+        citoyenEdit.twitter = citoyen.socialNetwork.twitter;
+      }
+      if(citoyen.socialNetwork.facebook){
+        citoyenEdit.facebook = citoyen.socialNetwork.facebook;
+      }
+      }
     }else if(Router.current().params.block === 'locality'){
       citoyenEdit.country = citoyen.address.addressCountry;
       citoyenEdit.postalCode = citoyen.address.postalCode;
@@ -596,7 +593,7 @@ AutoForm.addHooks(['editCitoyen'], {
   after: {
     "method-update" : function(error, result) {
       if (!error) {
-        Router.go('newsList', {_id:result.data.id,scope:'citoyens'});
+        Router.go('detailList', {_id:result.data.id,scope:'citoyens'});
       }
     }
   },
@@ -614,7 +611,7 @@ AutoForm.addHooks(['editBlockCitoyen'], {
     "method-update" : function(error, result) {
       if (!error) {
         if(Session.get('block')!=='preferences'){
-            Router.go('newsList', {_id:Session.get('scopeId'),scope:'citoyens'});
+            Router.go('detailList', {_id:Session.get('scopeId'),scope:'citoyens'});
         }
       }
     }

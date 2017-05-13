@@ -7,7 +7,7 @@ export const apiCommunecter = {};
 const callPixelRest = (token,method,controller,action,post) => {
   post["X-Auth-Token"] = token;
   //console.log(post);
-  let responsePost = HTTP.call( method, Meteor.settings.endpoint+'/communecter/'+controller+'/'+action, {
+  let responsePost = HTTP.call( method, `${Meteor.settings.endpoint}/${Meteor.settings.module}/${controller}/${action}`, {
     headers:{
       'X-Auth-Token' : token,
       'Origin':"https://co-mobile.communecter.org"
@@ -33,7 +33,7 @@ const callPixelRest = (token,method,controller,action,post) => {
 const callPixelMethodRest = (token,method,controller,action,post) => {
   post["X-Auth-Token"] = token;
   //console.log(post);
-  let responsePost = HTTP.call( method, Meteor.settings.endpoint+'/communecter/'+controller+'/'+action, {
+  let responsePost = HTTP.call( method, `${Meteor.settings.endpoint}/${Meteor.settings.module}/${controller}/${action}`, {
     headers:{
       'X-Auth-Token' : token,
       'Origin':"https://co-mobile.communecter.org"
@@ -124,7 +124,7 @@ const callPixelUploadRest = (token,folder,ownerId,input,dataURI,name) => {
     }
   };
 
-  let responsePost = request.postSync(Meteor.settings.endpoint+'/communecter/document/upload/dir/communecter/folder/'+folder+'/ownerId/'+ownerId+'/input/'+input, {
+  let responsePost = request.postSync(`${Meteor.settings.endpoint}/${Meteor.settings.module}/document/upload/dir/${Meteor.settings.module}/folder/${folder}/ownerId/${ownerId}/input/${input}`, {
     formData: formData,
     jar: true
   });
@@ -155,7 +155,7 @@ apiCommunecter.postUploadPixel = (folder,ownerId,input,dataBlob,name) => {
 };
 
 apiCommunecter.authPixelRest = (email,pwd) => {
-  var response = HTTP.call( 'POST', Meteor.settings.endpoint+'/communecter/person/authenticate', {
+  var response = HTTP.call( 'POST', `${Meteor.settings.endpoint}/${Meteor.settings.module}/person/authenticate`, {
     params: {
       "pwd": pwd,
       "email": email

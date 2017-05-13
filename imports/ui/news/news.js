@@ -14,17 +14,20 @@ import { ReactiveVar } from 'meteor/reactive-var';
 import '../qrcode/qrcode.js'
 
 //submanager
-import { newsListSubs } from '../../api/client/subsmanager.js';
+import { newsListSubs,filActusSubs } from '../../api/client/subsmanager.js';
 
 import { Events } from '../../api/events.js';
 import { Organizations } from '../../api/organizations.js';
 import { Projects } from '../../api/projects.js';
 import { Citoyens } from '../../api/citoyens.js';
-import { News } from '../../api/news.js';
+import { News,SchemasNewsRestBase } from '../../api/news.js';
 
 import { nameToCollection } from '../../api/helpers.js';
 
 import './news.html';
+
+import '../components/directory/list.js';
+import '../components/news/button-card.js';
 
 window.Events = Events;
 window.Organizations = Organizations;
@@ -34,13 +37,22 @@ window.Citoyens = Citoyens;
 let pageSession = new ReactiveDict('pageNews');
 
 Session.setDefault('limit', 5);
+Session.setDefault('limitFilActus', 5);
 
 Template.newsList.onCreated(function(){
   self = this;
-  this.ready = new ReactiveVar();
   this.readyScopeDetail = new ReactiveVar();
 
   this.autorun(function() {
+    if(Router.current().route.getName()=="newsList"){
+      pageSession.set('selectview', 'scopeNewsTemplate');
+    }else if(Router.current().route.getName()=="notificationsList"){
+      pageSession.set('selectview', 'scopeNotificationsTemplate');
+    }else{
+      pageSession.set('selectview', 'scopeDetailTemplate');
+    }
+    pageSession.set('scopeId', Router.current().params._id);
+    pageSession.set('scope', Router.current().params.scope);
     Session.set('scopeId', Router.current().params._id);
     Session.set('scope', Router.current().params.scope);
   });
@@ -51,6 +63,53 @@ this.autorun(function() {
     this.readyScopeDetail.set(handle.ready());
 }.bind(this));
 
+});
+
+Template.newsList.helpers({
+  scope () {
+    if(Router.current().params.scope){
+      const collection = nameToCollection(Router.current().params.scope);
+      return collection.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
+    }
+  },
+  scopeCardTemplate () {
+    return  'listCard'+Router.current().params.scope;
+  },
+  countsousEvents () {
+    return Counts.get(`countSous.${Router.current().params._id}`);
+  },
+  issousEvents () {
+    return Counts.get(`countSous.${Router.current().params._id}`) > 0;
+  },
+  isVote () {
+    return  this.type == "vote";
+  },
+  dataReadyScopeDetail() {
+  return Template.instance().readyScopeDetail.get();
+  },
+  selectview (){
+    return pageSession.get('selectview');
+  }
+});
+
+Template.scopeDetailTemplate.helpers({
+  scopeCardTemplate () {
+    return  'listCard'+Router.current().params.scope;
+  },
+  dataReadyScopeDetail() {
+  return Template.instance().readyScopeDetail.get();
+  },
+});
+
+Template.scopeNewsTemplate.onCreated(function(){
+  self = this;
+  this.ready = new ReactiveVar();
+
+  this.autorun(function() {
+    Session.set('scopeId', Router.current().params._id);
+    Session.set('scope', Router.current().params.scope);
+  });
+
   this.autorun(function() {
     if (!!Session.get('limit')) {
       const handle = newsListSubs.subscribe('newsList', Router.current().params.scope, Router.current().params._id,Session.get('limit'));
@@ -59,7 +118,7 @@ this.autorun(function() {
   }.bind(this));
 });
 
-Template.newsList.onRendered(function(){
+Template.scopeNewsTemplate.onRendered(function(){
   self = this;
   const showMoreVisible = () => {
     let threshold, target = $("#showMoreResults");
@@ -82,15 +141,9 @@ Template.newsList.onRendered(function(){
 
 });
 
-Template.newsList.helpers({
-  scope () {
-    if(Router.current().params.scope){
-      const collection = nameToCollection(Router.current().params.scope);
-      return collection.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
-    }
-  },
-  scopeCardTemplate () {
-    return  'listCard'+Router.current().params.scope;
+Template.scopeNewsTemplate.helpers({
+  scopeBoutonNewsTemplate () {
+    return  'boutonNews'+Router.current().params.scope;
   },
   isLimit (countNews) {
     return  countNews > Session.get('limit');
@@ -99,20 +152,196 @@ Template.newsList.helpers({
     //console.log(Router.current().params._id)
     return Counts.get(`countNews.${Router.current().params._id}`);
   },
-  countsousEvents () {
-    return Counts.get(`countSous.${Router.current().params._id}`);
+  dataReady() {
+  return Template.instance().ready.get();
+  }
+});
+
+Template.scopeFilActusTemplate.onCreated(function(){
+  self = this;
+  this.ready = new ReactiveVar();
+
+  this.autorun(function() {
+    Session.set('scopeId', Router.current().params._id);
+    Session.set('scope', Router.current().params.scope);
+  });
+
+  this.autorun(function() {
+    if (!!Session.get('limitFilActus')) {
+      const handle = filActusSubs.subscribe('citoyenActusList',Session.get('limitFilActus'));
+      this.ready.set(handle.ready());
+    }
+  }.bind(this));
+});
+
+Template.scopeFilActusTemplate.onRendered(function(){
+  self = this;
+  const showMoreVisible = () => {
+    let threshold, target = $("#showMoreResultslimitFilActus");
+    if (!target.length) return;
+    threshold = $('.content.overflow-scroll').scrollTop() + $('.content.overflow-scroll').height();
+    if (target.offset().top < threshold) {
+      if (!target.data("visiblelimitFilActus")) {
+        target.data("visiblelimitFilActus", true);
+        Session.set("limitFilActus",
+        Session.get('limitFilActus') + 5);
+      }
+    } else {
+      if (target.data("visiblelimitFilActus")) {
+        target.data("visiblelimitFilActus", false);
+      }
+    }
+  }
+
+  $('.content.overflow-scroll').scroll(showMoreVisible);
+
+});
+
+Template.scopeFilActusTemplate.helpers({
+  scopeBoutonNewsTemplate () {
+    return  'boutonFilActus'+Router.current().params.scope;
   },
-  issousEvents () {
-    return Counts.get(`countSous.${Router.current().params._id}`) > 0;
+  isLimit (countNews) {
+    return  countNews > Session.get('limitFilActus');
   },
-  isVote () {
-    return  this.type == "vote";
+  countNews () {
+    //console.log(Router.current().params._id)
+    return Counts.get(`countActus.${Router.current().params._id}`);
   },
   dataReady() {
   return Template.instance().ready.get();
+  }
+});
+
+
+
+Template.scopeNotificationsTemplate.onCreated(function(){
+  self = this;
+  this.ready = new ReactiveVar();
+
+  this.autorun(function() {
+    Session.set('scopeId', Router.current().params._id);
+    Session.set('scope', Router.current().params.scope);
+  });
+
+  this.autorun(function() {
+    const handleToBeValidated = newsListSubs.subscribe('listMembersToBeValidated', Router.current().params.scope, Router.current().params._id);
+      const handle = newsListSubs.subscribe('notificationsScope', Router.current().params.scope, Router.current().params._id);
+      if(handleToBeValidated.ready() && handle.ready())
+      this.ready.set(handle.ready());
+  }.bind(this));
+});
+
+Template.scopeNotificationsTemplate.helpers({
+  scopeBoutonNotificationsTemplate () {
+    return  'boutonNotifications'+Router.current().params.scope;
   },
-  dataReadyScopeDetail() {
-  return Template.instance().readyScopeDetail.get();
+  dataReady() {
+  return Template.instance().ready.get();
+  }
+});
+
+Template.scopeNotificationsTemplate.events({
+  'click .validateYes': function(event, template) {
+    event.preventDefault();
+    const scopeId = Session.get('scopeId');
+    const scope = Session.get('scope');
+    console.log(`${scopeId},${scope},${this._id._str},${this.scopeVar()}`);
+    Meteor.call('validateEntity',scopeId,scope,this._id._str,this.scopeVar(),'toBeValidated', function(err, resp) {
+      if(err){
+        if(err.reason){
+          IonPopup.alert({ template: TAPi18n.__(err.reason) });
+        }
+      }else{
+          console.log('yes validate');
+      }
+      });
+  },
+  'click .validateNo': function(event, template) {
+    event.preventDefault();
+    const scopeId = Session.get('scopeId');
+    const scope = Session.get('scope');
+    Meteor.call('disconnectEntity',scopeId,scope,undefined,this._id._str,this.scopeVar(), function(err, resp) {
+      if(err){
+        if(err.reason){
+          IonPopup.alert({ template: TAPi18n.__(err.reason) });
+        }
+      }else{
+          console.log('no validate');
+      }
+      });
+  }
+});
+
+Template.scopeProjectsTemplate.onCreated(function(){
+  self = this;
+  this.ready = new ReactiveVar();
+
+  this.autorun(function() {
+    Session.set('scopeId', Router.current().params._id);
+    Session.set('scope', Router.current().params.scope);
+  });
+
+  this.autorun(function() {
+      const handle = newsListSubs.subscribe('directoryListProjects', Router.current().params.scope, Router.current().params._id);
+      this.ready.set(handle.ready());
+  }.bind(this));
+});
+
+Template.scopeProjectsTemplate.helpers({
+  scopeBoutonProjectsTemplate () {
+    return  'boutonProjects'+Router.current().params.scope;
+  },
+  dataReady() {
+  return Template.instance().ready.get();
+  }
+});
+
+Template.scopeOrganizationsTemplate.onCreated(function(){
+  self = this;
+  this.ready = new ReactiveVar();
+
+  this.autorun(function() {
+    Session.set('scopeId', Router.current().params._id);
+    Session.set('scope', Router.current().params.scope);
+  });
+
+  this.autorun(function() {
+      const handle = newsListSubs.subscribe('directoryListOrganizations', Router.current().params.scope, Router.current().params._id);
+      this.ready.set(handle.ready());
+  }.bind(this));
+});
+
+Template.scopeOrganizationsTemplate.helpers({
+  scopeBoutonProjectsTemplate () {
+    return  'boutonOrganizations'+Router.current().params.scope;
+  },
+  dataReady() {
+  return Template.instance().ready.get();
+  }
+});
+
+Template.scopeEventsTemplate.onCreated(function(){
+  self = this;
+  this.ready = new ReactiveVar();
+
+  this.autorun(function() {
+    Session.set('scopeId', Router.current().params._id);
+    Session.set('scope', Router.current().params.scope);
+  });
+
+  this.autorun(function() {
+      const handle = newsListSubs.subscribe('directoryListEvents', Router.current().params.scope, Router.current().params._id);
+      this.ready.set(handle.ready());
+  }.bind(this));
+});
+
+Template.scopeEventsTemplate.helpers({
+  scopeBoutonEventsTemplate () {
+    return  'boutonProjects'+Router.current().params.scope;
+  },
+  dataReady() {
+  return Template.instance().ready.get();
   }
 });
 
@@ -134,7 +363,7 @@ Template.actionSheet.events({
       titleText: TAPi18n.__('Actions Citoyens'),
       buttons: [
         { text: `${TAPi18n.__('edit info')} <i class="icon ion-edit"></i>` },
-        { text: `${TAPi18n.__('edit contact')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit network')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit description')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit address')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit privacy settings')} <i class="icon ion-edit"></i>` },
@@ -150,11 +379,11 @@ Template.actionSheet.events({
         }
         if (index === 1) {
           console.log('Edit!');
-          Router.go('citoyensBlockEdit', {_id:Router.current().params._id,block:'contact'});
+          Router.go('citoyensBlockEdit', {_id:Router.current().params._id,block:'network'});
         }
         if (index === 2) {
           console.log('Edit!');
-          Router.go('citoyensBlockEdit', {_id:Router.current().params._id,block:'description'});
+          Router.go('citoyensBlockEdit', {_id:Router.current().params._id,block:'descriptions'});
         }
         if (index === 3) {
           console.log('Edit!');
@@ -176,7 +405,7 @@ Template.actionSheet.events({
       titleText: TAPi18n.__('Actions Events'),
       buttons: [
         { text: `${TAPi18n.__('edit info')} <i class="icon ion-edit"></i>` },
-        { text: `${TAPi18n.__('edit contact')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit network')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit description')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit address')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit dates')} <i class="icon ion-edit"></i>` },
@@ -193,11 +422,11 @@ Template.actionSheet.events({
         }
         if (index === 1) {
           console.log('Edit!');
-          Router.go('eventsBlockEdit', {_id:Router.current().params._id,block:'contact'});
+          Router.go('eventsBlockEdit', {_id:Router.current().params._id,block:'network'});
         }
         if (index === 2) {
           console.log('Edit!');
-          Router.go('eventsBlockEdit', {_id:Router.current().params._id,block:'description'});
+          Router.go('eventsBlockEdit', {_id:Router.current().params._id,block:'descriptions'});
         }
         if (index === 3) {
           console.log('Edit!');
@@ -223,7 +452,7 @@ Template.actionSheet.events({
       titleText: TAPi18n.__('Actions Organizations'),
       buttons: [
         { text: `${TAPi18n.__('edit info')} <i class="icon ion-edit"></i>` },
-        { text: `${TAPi18n.__('edit contact')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit network')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit description')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit address')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit privacy settings')} <i class="icon ion-edit"></i>` },
@@ -239,11 +468,11 @@ Template.actionSheet.events({
         }
         if (index === 1) {
           console.log('Edit!');
-          Router.go('organizationsBlockEdit', {_id:Router.current().params._id,block:'contact'});
+          Router.go('organizationsBlockEdit', {_id:Router.current().params._id,block:'network'});
         }
         if (index === 2) {
           console.log('Edit!');
-          Router.go('organizationsBlockEdit', {_id:Router.current().params._id,block:'description'});
+          Router.go('organizationsBlockEdit', {_id:Router.current().params._id,block:'descriptions'});
         }
         if (index === 3) {
           console.log('Edit!');
@@ -265,7 +494,7 @@ Template.actionSheet.events({
       titleText: TAPi18n.__('Actions Projects'),
       buttons: [
         { text: `${TAPi18n.__('edit info')} <i class="icon ion-edit"></i>` },
-        { text: `${TAPi18n.__('edit contact')} <i class="icon ion-edit"></i>` },
+        { text: `${TAPi18n.__('edit network')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit description')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit address')} <i class="icon ion-edit"></i>` },
         { text: `${TAPi18n.__('edit dates')} <i class="icon ion-edit"></i>` },
@@ -282,11 +511,11 @@ Template.actionSheet.events({
         }
         if (index === 1) {
           console.log('Edit!');
-          Router.go('projectsBlockEdit', {_id:Router.current().params._id,block:'contact'});
+          Router.go('projectsBlockEdit', {_id:Router.current().params._id,block:'network'});
         }
         if (index === 2) {
           console.log('Edit!');
-          Router.go('projectsBlockEdit', {_id:Router.current().params._id,block:'description'});
+          Router.go('projectsBlockEdit', {_id:Router.current().params._id,block:'descriptions'});
         }
         if (index === 3) {
           console.log('Edit!');
@@ -306,7 +535,13 @@ Template.actionSheet.events({
   },
 });
 
+
 Template.newsList.events({
+  "click .selectview" (evt) {
+    evt.preventDefault();
+    pageSession.set( 'selectview', evt.currentTarget.id);
+    return ;
+  },
   "click .saveattendees-link" (evt) {
     evt.preventDefault();
     let scopeId=Session.get('scopeId');
@@ -345,6 +580,15 @@ Template.newsList.events({
   const scopeId=Session.get('scopeId');
   const scope=Session.get('scope');
   Meteor.call('disconnectEntity',scopeId,scope);
+return ;
+},
+"click .unfollowscope-link" (evt) {
+  evt.preventDefault();
+  //parentId:590c5877dd0452330ca1fa1f,parentType:projects,connectType:followers,childId:5534fd9da1aa14201b0041cb,childType:citoyens
+  //connectId,parentType,connectType,childId,childType
+  const scopeId=Session.get('scopeId');
+  const scope=Session.get('scope');
+  Meteor.call('disconnectEntity',scopeId,scope,'followers');
 return ;
 },
   'click .scanner-event' : function(event, template){
@@ -440,7 +684,7 @@ function successCallback (retour){
       }});
     },
     onCancel: function(){
-      Router.go('newsList', {_id:self._id._str,scope:scope});
+      Router.go('detailList', {_id:self._id._str,scope:scope});
     }
   });
 }
@@ -485,12 +729,23 @@ function successCallback (retour){
     });
 
     Template.newsAdd.onCreated(function () {
-      this.autorun(function() {
-        Session.set('scopeId', Router.current().params._id);
-        Session.set('scope', Router.current().params.scope);
+      const self = this;
+      self.ready = new ReactiveVar();
+      pageSession.set( 'error', false );
+
+      self.autorun(function(c) {
+          Session.set('scopeId', Router.current().params._id);
+          Session.set('scope', Router.current().params.scope);
       });
 
-      pageSession.set( 'error', false );
+      self.autorun(function(c) {
+          const handle = Meteor.subscribe('scopeDetail',Router.current().params.scope,Router.current().params._id);
+          if(handle.ready()){
+            self.ready.set(handle.ready());
+          }
+      });
+
+
     });
 
     Template.newsAdd.onRendered(function () {
@@ -498,8 +753,20 @@ function successCallback (retour){
     });
 
     Template.newsAdd.helpers({
+      scope () {
+        if(Router.current().params.scope){
+          const collection = nameToCollection(Router.current().params.scope);
+          return collection.findOne({_id:new Mongo.ObjectID(Router.current().params._id)});
+        }
+      },
       error () {
         return pageSession.get( 'error' );
+      },
+      blockSchema() {
+        return Router.current().params.scope && SchemasNewsRestBase[Router.current().params.scope];
+      },
+      dataReady() {
+      return Template.instance().ready.get();
       }
     });
 
@@ -515,7 +782,7 @@ function successCallback (retour){
 
       self.autorun(function(c) {
           const handle = Meteor.subscribe('scopeDetail',Router.current().params.scope,Router.current().params._id);
-          const handleScopeDetail = Meteor.subscribe('newsDetail', Router.current().params.newsId);
+          const handleScopeDetail = Meteor.subscribe('newsDetail', Router.current().params.scope,Router.current().params._id,Router.current().params.newsId);
           if(handle.ready() && handleScopeDetail.ready()){
             self.ready.set(handle.ready());
           }
@@ -536,6 +803,9 @@ function successCallback (retour){
       },
       dataReady() {
       return Template.instance().ready.get();
+      },
+      blockSchema() {
+      return Router.current().params.scope && SchemasNewsRestBase[Router.current().params.scope];
       }
     });
 
@@ -597,7 +867,6 @@ function successCallback (retour){
 
             //Meteor.call('pushNewNewsAttendees',scopeId,selfresult);
             Router.go('newsList', {_id: Session.get('scopeId'),scope:Session.get('scope')});
-
           }
         },
         "method-update" : function(error, result) {

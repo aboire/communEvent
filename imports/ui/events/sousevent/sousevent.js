@@ -12,7 +12,7 @@ import { AutoForm } from 'meteor/aldeed:autoform';
 import { Location } from 'meteor/djabatav:geolocation-plus';
 import { Mongo } from 'meteor/mongo';
 import { HTTP } from 'meteor/http';
-//import { Mapbox } from 'meteor/pauloborges:mapbox';
+//import { Mapbox } from 'meteor/communecter:mapbox';
 
 
 //collections

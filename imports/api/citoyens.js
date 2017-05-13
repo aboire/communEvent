@@ -46,31 +46,31 @@ birthDate : {
   type : Date,
   optional: true
 },
-githubAccount : {
+github : {
   type : String,
   regEx: SimpleSchema.RegEx.Url,
   optional: true
 },
-telegramAccount : {
+telegram : {
   type : String,
   optional: true
 },
-skypeAccount : {
-  type : String,
-  regEx: SimpleSchema.RegEx.Url,
-  optional: true
-},
-gpplusAccount : {
+skype : {
   type : String,
   regEx: SimpleSchema.RegEx.Url,
   optional: true
 },
-twitterAccount : {
+gpplus : {
   type : String,
   regEx: SimpleSchema.RegEx.Url,
   optional: true
 },
-facebookAccount : {
+twitter : {
+  type : String,
+  regEx: SimpleSchema.RegEx.Url,
+  optional: true
+},
+facebook : {
   type : String,
   regEx: SimpleSchema.RegEx.Url,
   optional: true
@@ -88,13 +88,9 @@ export const SchemasCitoyensRest = new SimpleSchema([baseSchemaCitoyens,updateSc
   }
 }]);
 
-
-
-
-
 export const BlockCitoyensRest = {};
-BlockCitoyensRest.description = new SimpleSchema([blockBaseSchema,baseSchema.pick(['shortDescription','description'])]);
-BlockCitoyensRest.info = new SimpleSchema([blockBaseSchema,baseSchema.pick(['name','tags','tags.$']),updateSchemaCitoyens.pick(['githubAccount','telegramAccount','skypeAccount','gpplusAccount','twitterAccount','facebookAccount']),{
+BlockCitoyensRest.descriptions = new SimpleSchema([blockBaseSchema,baseSchema.pick(['shortDescription','description'])]);
+BlockCitoyensRest.info = new SimpleSchema([blockBaseSchema,baseSchema.pick(['name','tags','tags.$','url']),updateSchemaCitoyens.pick(['email','fixe','mobile','fax','birthDate']),{
   username : {
     type : String,
     custom: function () {
@@ -109,7 +105,7 @@ BlockCitoyensRest.info = new SimpleSchema([blockBaseSchema,baseSchema.pick(['nam
       }
   }
 }]);
-BlockCitoyensRest.contact = new SimpleSchema([blockBaseSchema,baseSchema.pick(['url']),updateSchemaCitoyens.pick(['email','fixe','mobile','fax','birthDate'])]);
+BlockCitoyensRest.network = new SimpleSchema([blockBaseSchema,updateSchemaCitoyens.pick(['github','telegram','skype','gpplus','twitter','facebook'])]);
 BlockCitoyensRest.locality = new SimpleSchema([blockBaseSchema,geoSchema]);
 BlockCitoyensRest.preferences = new SimpleSchema([blockBaseSchema,{
   preferences : {
@@ -179,6 +175,7 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
   import { Projects } from './projects.js';
   import { Organizations } from './organizations.js';
   import { Documents } from './documents.js';
+  import { ActivityStream } from './activitystream.js';
   import { queryLink,queryOptions } from './helpers.js';
 
     Citoyens.helpers({
@@ -216,10 +213,10 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
         return this._id._str === Meteor.userId();
       },
       isFollows (followId){
-        return this.links && this.links.follows && this.links.follows[followId];
+        return (this.links && this.links.follows && this.links.follows[followId]) ? true : false;
       },
       isFollowsMe (){
-        return this.links && this.links.follows && this.links.follows[Meteor.userId()];
+        return (this.links && this.links.follows && this.links.follows[Meteor.userId()]) ? true : false;
       },
       listFollows (search){
         if(this.links && this.links.follows){
@@ -231,13 +228,13 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
       },
       countFollows (search) {
         //return this.links && this.links.follows && _.size(this.links.follows);
-        return this.listFollows(search).count();
+        return this.listFollows(search) && this.listFollows(search).count();
       },
       isFollowers (followId){
-        return this.links && this.links.followers && this.links.followers[followId];
+        return (this.links && this.links.followers && this.links.followers[followId]) ? true : false;
       },
       isFollowersMe (){
-        return this.links && this.links.followers && this.links.followers[Meteor.userId()];
+        return (this.links && this.links.followers && this.links.followers[Meteor.userId()]) ? true : false;
       },
       listFollowers (search){
         if(this.links && this.links.followers){
@@ -249,7 +246,7 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
       },
       countFollowers (search) {
         //return this.links && this.links.followers && _.size(this.links.followers);
-        return this.listFollowers(search).count();
+        return this.listFollowers(search) && this.listFollowers(search).count();
       },
       listMemberOf (search,selectorga){
         if(this.links && this.links.memberOf){
@@ -260,7 +257,7 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
         }
       },
       countMemberOf (search,selectorga) {
-        return this.listMemberOf(search,selectorga).count();
+        return this.listMemberOf(search,selectorga) && this.listMemberOf(search,selectorga).count();
       },
       listEvents (search){
         if(this.links && this.links.events){
@@ -272,7 +269,7 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
       },
       countEvents (search) {
         //return this.links && this.links.events && _.size(this.links.events);
-        return this.listEvents(search).count();
+        return this.listEvents(search) && this.listEvents(search).count();
       },
       listProjects (search){
         if(this.links && this.links.projects){
@@ -284,7 +281,41 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
       },
       countProjects (search) {
         //return this.links && this.links.projects && _.size(this.links.projects);
-        return this.listProjects(search).count();
+        return this.listProjects(search) && this.listProjects(search).count();
+      },
+      listProjectsCreator (){
+        let query = {};
+        //query['creator'] = this._id._str;
+        query[`links.contributors.${this._id._str}.isAdmin`] = true;
+        return Projects.find(query,queryOptions);
+      },
+      countProjectsCreator () {
+        return this.listProjectsCreator() && this.listProjectsCreator().count();
+      },
+      listEventsCreator (){
+        let query = {};
+        query['organizerId'] = this._id._str;
+        //query[`links.organizer.${this._id._str}`] = {$exist:1};
+        return Events.find(query,queryOptions);
+      },
+      countEventsCreator () {
+        //return this.links && this.links.events && _.size(this.links.events);
+        return this.listEventsCreator() && this.listEventsCreator().count();
+      },
+      listOrganizationsCreator (){
+        let query = {};
+        //query['creator'] = this._id._str;
+        query[`links.members.${this._id._str}.isAdmin`] = true;
+        return Organizations.find(query,queryOptions);
+      },
+      countOrganizationsCreator () {
+        return this.listOrganizationsCreator() && this.listOrganizationsCreator().count();
+      },
+      listNotifications (){
+      return ActivityStream.api.isUnread(this._id._str);
+      },
+      listNotificationsAsk (){
+      return ActivityStream.api.isUnreadAsk(this._id._str);
       },
       scopeVar () {
         return 'citoyens';
@@ -295,8 +326,70 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
       listScope () {
         return 'listCitoyens';
       },
-      news () {
-        return News.find({'target.id':Router.current().params._id},{sort: {"created": -1},limit: Session.get('limit') });
+      newsJournal (target,userId,limit) {
+        const query = {};
+        const options = {};
+        options['sort'] = {"created": -1};
+        query['$or'] = [];
+        let bothUserId = (typeof userId !== 'undefined') ? userId : Meteor.userId();
+        let targetId = (typeof target !== 'undefined') ? target : Router.current().params._id;
+        if(Meteor.isClient){
+          let bothLimit = Session.get('limit');
+        }else{
+          if(typeof limit !== 'undefined'){
+            options['limit'] = limit;
+          }
+        }
+        let scopeTypeArray = ['public','restricted'];
+        if(bothUserId === targetId){
+          scopeTypeArray.push('private');
+        }
+        query['$or'].push({'author':targetId, targetIsAuthor:{$exists:false},type:'news','scope.type':{$in:scopeTypeArray}});
+        query['$or'].push({'target.id':targetId,'scope.type':{$in:scopeTypeArray}});
+        if(bothUserId){
+          query['$or'].push({'author':bothUserId,'target.id':targetId});
+        }
+        return News.find(query,options);
+      },
+      newsActus (userId,limit) {
+        const query = {};
+        const options = {};
+        options['sort'] = {"created": -1};
+        query['$or'] = [];
+        let bothUserId = (typeof userId !== 'undefined') ? userId : Meteor.userId();
+        if(Meteor.isClient){
+          let bothLimit = Session.get('limit');
+        }else{
+          if(typeof limit !== 'undefined'){
+            options['limit'] = limit;
+          }
+        }
+        query['$or'].push({'author':bothUserId});
+          let projectsArray,eventsArray,memberOfArray = [];
+          //projects
+          if(this.links && this.links.projects){
+          projectsArray = _.map(this.links.projects, (a,k) => k);
+          }
+          //events
+          if(this.links && this.links.events){
+          eventsArray = _.map(this.links.events, (a,k) => k);
+          }
+          //memberOf
+          if(this.links && this.links.memberOf){
+          memberOfArray = _.map(this.links.memberOf, (a,k) => k);
+          }
+
+          const arrayIds = _.union(projectsArray,eventsArray,memberOfArray);
+          arrayIds.push(bothUserId);
+          query['$or'].push({'target.id': {$in:arrayIds}});
+          query['$or'].push({'mentions.id': {$in:arrayIds}});
+
+          //follows
+          if(this.links && this.links.follows){
+          const followsArray = _.map(this.links.follows, (a,k) => k);
+          query['$or'].push({'target.id': {$in:followsArray},'scope.type':{$in:['public','restricted']}});
+          }
+        return News.find(query,options);
       },
       new () {
         return News.findOne({_id:new Mongo.ObjectID(Router.current().params.newsId)});

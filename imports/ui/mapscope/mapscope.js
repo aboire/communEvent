@@ -3,7 +3,7 @@ import { Template } from 'meteor/templating';
 import { Session } from 'meteor/session';
 import { ReactiveDict } from 'meteor/reactive-dict';
 import { AutoForm } from 'meteor/aldeed:autoform';
-import { Mapbox } from 'meteor/pauloborges:mapbox';
+import { Mapbox } from 'meteor/communecter:mapbox';
 import { $ } from 'meteor/jquery';
 import { Blaze } from 'meteor/blaze';
 import { Location } from 'meteor/djabatav:geolocation-plus';
@@ -20,6 +20,7 @@ import { nameToCollection } from '../../api/helpers.js';
 import { listEventsSubs,listOrganizationsSubs,listProjectsSubs,listCitoyensSubs } from '../../api/client/subsmanager.js';
 
 import { position } from '../../api/client/position.js';
+import { queryGeoFilter } from '../../api/helpers.js';
 
 import './mapscope.html';
 
@@ -72,45 +73,45 @@ Template.mapCanvas.onRendered(function () {
   }).resize();
 
   self.autorun(function (c) {
-    if (self.subscriptionsReady()) {
+    IonLoading.show();
+    if (self.ready.get()) {
       if (Mapbox.loaded()) {
-        initialize($("#map_canvas")[0], 13);
+        IonLoading.hide();
         c.stop();
       }
     }
   });
 
+  self.autorun(function (c) {
+    //if (self.ready.get()) {
+      if (Mapbox.loaded()) {
+        initialize($("#map_canvas")[0], 13);
+        c.stop();
+      }
+    //}
+  });
+
   if (self.liveQuery) {
     self.liveQuery.stop();
   }
+  self.autorun(function (c) {
+  if (self.ready.get()) {
+  if (Mapbox.loaded()) {
+  clearLayers();
   let inputDate = new Date();
   const collection = nameToCollection(Router.current().params.scope);
-  self.liveQuery = collection.find({created:{$gte : inputDate}}).observe({
+  let query={};
+  query = queryGeoFilter(query);
+  //query['created'] = {$gte : inputDate};
+  console.log(query);
+  query['geo'] = {$exists:1};
+  self.liveQuery = collection.find(query).observe({
     added: function(event) {
-      var containerNode = document.createElement('div');
-      Blaze.renderWithData(Template.mapeventpopup, event, containerNode);
-      var marker = new L.Marker([event.geo.latitude, event.geo.longitude], {
-        _id: event._id._str,
-        title: event.name,
-        latitude : event.geo.latitude,
-        longitude : event.geo.longitude,
-        icon: L.mapbox.marker.icon({
-          'marker-size': 'small',
-          'marker-color': selectColor(event)
-        })
-      }).bindPopup(containerNode).on('click', function(e) {
-        console.log(e.target.options._id);
-        map.panTo([e.target.options.latitude, e.target.options.longitude]);
-        Session.set("selected", e.target.options._id);
-      });
-      addMarker(marker);
-    },
-    changed: function(event) {
-      var marker = markers[event._id._str];
-      if (marker){
-        if (map.hasLayer(marker)) map.removeLayer(marker);
+
+      if(event && event.geo && event.geo.latitude){
         var containerNode = document.createElement('div');
-        Blaze.renderWithData(Template.mapeventpopup, event, containerNode);
+
+        Blaze.renderWithData(Template.mapscopepopup, event, containerNode);
         var marker = new L.Marker([event.geo.latitude, event.geo.longitude], {
           _id: event._id._str,
           title: event.name,
@@ -127,13 +128,41 @@ Template.mapCanvas.onRendered(function () {
         });
         addMarker(marker);
       }
-
+    },
+    changed: function(event) {
+      console.log(event._id._str);
+      if(event && event.geo && event.geo.latitude){
+      var marker = markers[event._id._str];
+      if (marker){
+        if (map.hasLayer(marker)) map.removeLayer(marker);
+        var containerNode = document.createElement('div');
+        Blaze.renderWithData(Template.mapscopepopup, event, containerNode);
+        var marker = new L.Marker([event.geo.latitude, event.geo.longitude], {
+          _id: event._id._str,
+          title: event.name,
+          latitude : event.geo.latitude,
+          longitude : event.geo.longitude,
+          icon: L.mapbox.marker.icon({
+            'marker-size': 'small',
+            'marker-color': selectColor(event)
+          })
+        }).bindPopup(containerNode).on('click', function(e) {
+          console.log(e.target.options._id);
+          map.panTo([e.target.options.latitude, e.target.options.longitude]);
+          Session.set("selected", e.target.options._id);
+        });
+        addMarker(marker);
+      }
+    }
     },
     removed: function(event) {
+      console.log(event._id._str);
       removeMarker(event._id._str);
     }
   });
-
+}
+}
+})
 
 });
 
@@ -154,23 +183,42 @@ const initialize = ( element, zoom, features ) => {
   let self = this;
   let city = Session.get('city');
   let geo = position.getLatlng();
+  let options = {
+  maxZoom: 18
+  };
   if(geo && geo.latitude){
     L.mapbox.accessToken = Meteor.settings.public.mapbox;
-    map = L.mapbox.map(element,'mapbox.streets').setView(new L.LatLng(parseFloat(geo.latitude), parseFloat(geo.longitude)), zoom);
+    map = L.mapbox.map(element,'mapbox.streets',options);
+    map.setView(new L.LatLng(parseFloat(geo.latitude), parseFloat(geo.longitude)), zoom);
+
+    /*if(city && city.geoShape && city.geoShape.coordinates){
+      console.log(JSON.stringify(city.geoShape));
+      var featureLayer = L.mapbox.featureLayer({
+      type: "FeatureCollection",
+      features: [{
+        type: "Feature",
+        geometry: city.geoShape
+      }]
+    }).addTo(map);
+    console.log(featureLayer.getGeoJSON());
+  }*/
+
+    //var features = L.mapbox.featureLayer('mapbox.dc-markers').addTo(map);
     /*var stamenLayer = L.tileLayer('https://stamen-tiles-{s}.a.ssl.fastly.net/toner/{z}/{x}/{y}.png', {
     attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under <a href="http://creativecommons.org/licenses/by-sa/3.0">CC BY SA</a>.'
   }).addTo(map);*/
+
   var marker = L.marker(new L.LatLng(parseFloat(geo.latitude), parseFloat(geo.longitude)),{icon: L.mapbox.marker.icon({
     'marker-size': 'small',
     'marker-color': '#fa0'
   })}).bindPopup('Vous êtes ici :)');
   map.addLayer(marker);
+
+
+
   clusters = new L.MarkerClusterGroup();
 
-  /*if(city && city.geoShape && city.geoShape.coordinates){
-  var mapPolygon = L.polygon(city.geoShape.coordinates[0]);
-  map.addLayer(mapPolygon);
-}*/
+
 //map.attributionControl.setPosition('bottomleft');
 
 
@@ -199,8 +247,12 @@ var directionsRoutesControl = L.mapbox.directions.routesControl('routes', direct
 var directionsInstructionsControl = L.mapbox.directions.instructionsControl('instructions', directions)
 .addTo(map);*/
 
-const collection = nameToCollection(Router.current().params.scope);
-collection.find({}).map(function(event){
+/*const collection = nameToCollection(Router.current().params.scope);
+let query={};
+query = queryGeoFilter(query);
+query['geo'] = {$exists:1};
+collection.find({geo:{$exists:1}}).map(function(event){
+  if(event && event.geo && event.geo.latitude){
   let containerNode = document.createElement('div');
   Blaze.renderWithData(Template.mapscopepopup, event, containerNode);
   let marker = new L.Marker([event.geo.latitude, event.geo.longitude], {
@@ -218,7 +270,8 @@ collection.find({}).map(function(event){
     Session.set("selected", e.target.options._id);
   });
   addMarker(marker);
-});
+  }
+});*/
 map.addLayer(clusters);
 
 /*if(Session.get('currentScopeId')){
@@ -276,6 +329,11 @@ const removeMarker = (_id) => {
   var marker = markers[_id];
   if (clusters.hasLayer(marker)) clusters.removeLayer(marker);
 }
+
+const clearLayers = () => {
+  clusters.clearLayers();
+}
+
 
 const selectColor = (event) => {
   let inputDate = new Date();
