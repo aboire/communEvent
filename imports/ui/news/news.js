@@ -749,6 +749,7 @@ function successCallback (retour){
     });
 
     Template.newsAdd.onRendered(function () {
+        const self = this;
       pageSession.set( 'error', false );
     });
 
@@ -958,4 +959,16 @@ function successCallback (retour){
           }
         }
       }
+    });
+
+    Template.newsFields.onRendered(function() {
+
+      $('textarea').atwho({
+  at: "@",
+  data: ["one", "two", "three"],
+}).atwho({
+  at: ":",
+  data: ["+1", "-1", "smile"]
+});
+
     });

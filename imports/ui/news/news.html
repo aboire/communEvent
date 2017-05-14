@@ -181,9 +181,11 @@
       {{#if text}}<p>{{cutString text 140}}</p>{{/if}}
       {{/if}}
 
+      {{#if tags}}
       {{#each tags}}
       <span class=""><i class="icon ion-pound"></i> {{this}}</span>
       {{/each}}
+      {{/if}}
 
       {{#if equals type 'activityStream'}}
       <p><a href="{{pathFor 'detailList' _id=target.id scope=target.type}}" class="positive">{{targetNews.name}}</a> {{object.displayName}}
@@ -294,7 +296,7 @@
       </div>
     {{/if}}
     {{#autoForm id="addNew" schema=blockSchema type="method" meteormethod="insertNew" template="ionic" class="padding"}}
-    {{> afQuickField name='text' type="textarea" label-type='placeholder' rows=8}}
+    {{> afQuickField name='text' type="textarea" label-type='placeholder' rows=8 class="atwho-inputor"}}
     {{> afQuickField name='scope'}}
     {{> afQuickField name='tags'}}
     {{#if equals scope.scopeVar 'organizations'}}
@@ -365,7 +367,7 @@
 </template>
 
 <template name="newsFields">
-  {{> afQuickField name='text' rows=8}}
+  {{> afQuickField name='text' type="textarea" label-type='placeholder' rows=8 class="atwho-inputor"}}
 </template>
 
 <template name="actionSheet">
@@ -540,6 +542,7 @@
       <a href="{{url}}"  class="item item-icon-left right-top animated in"><i class="icon fa fa-link"></i> {{url}}</a>
       {{/if}}
       {{/transition}}
+
       {{#if isVisibleFields 'phone'}}
       {{#if telephone}}
       {{#transition in="slideInDown" out="slideOutUp"}}
@@ -571,6 +574,7 @@
       {{/transition}}
       {{/if}}
       {{/if}}
+
       </div>
 
       {{#transition in="slideInLeft" out="slideOutLeft"}}
@@ -579,7 +583,6 @@
       <p>
       {{#each tags}}
       <a href="" class="positive animated in"><i class="icon fa fa-tag"></i> {{this}}</a>
-
       {{/each}}
       </p>
       </div>
@@ -628,7 +631,13 @@
     <div class="button-bar bar-positive">
       {{> Bouton_card id=_id._str scope=scopeVar isConnect=isFollowersMe classOff="button-small followperson-link" classOn="button-small unfollowscope-link" iconOff="fa fa-rss" iconOn="fa fa-rss" titleOn=(_ "Unsubscribe") titleOff=(_ "Subscribe")}}
 
+      {{#if toBeValidated}}
+      <button class="button button-small disabled">
+        <i class="icon fa fa-hourglass-half"></i> {{_ "Pending"}}
+      </button>
+      {{else}}
       {{> Bouton_card id=_id._str scope=scopeVar isConnect=isMembers classOff="button-small connectscope-link" classOn="button-small disconnectscope-link" iconOff="fa fa-link" iconOn="fa fa-unlink" titleOff=(_ "Become a member")}}
+      {{/if}}
 
       {{#if isMembers}}
       {{#if isAdmin}}
@@ -656,7 +665,13 @@
     <div class="button-bar bar-positive">
       {{> Bouton_card id=_id._str scope=scopeVar isConnect=isFollowersMe classOff="button-small followperson-link" classOn="button-small unfollowscope-link" iconOff="fa fa-rss" iconOn="fa fa-rss" titleOn=(_ "Unsubscribe") titleOff=(_ "Subscribe")}}
 
+      {{#if toBeValidated}}
+      <button class="button button-small disabled">
+        <i class="icon fa fa-hourglass-half"></i> {{_ "Pending"}}
+      </button>
+      {{else}}
       {{> Bouton_card id=_id._str scope=scopeVar isConnect=isContributors classOff="button-small connectscope-link" classOn="button-small disconnectscope-link" iconOff="fa fa-link" iconOn="fa fa-unlink" titleOff=(_ "Become a contributor")}}
+      {{/if}}
 
       {{#if isContributors}}
       {{#if isAdmin}}

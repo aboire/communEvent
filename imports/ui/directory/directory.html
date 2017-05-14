@@ -122,7 +122,7 @@
 <template name="listDirectoryFollowers">
   {{#if countFollowers search}}
       <div class="item item-divider">
-        <i class="icon ion-ios-heart"></i> {{_ "favorites"}} <span class="badge badge-dark">{{countFollowers search}}</span>
+        <i class="icon ion-ios-heart"></i> {{_ "subscribers"}} <span class="badge badge-dark">{{countFollowers search}}</span>
       </div>
       {{> Directory_list list=(listFollowers search) isConnect="isFollowersMe" person=true scope="citoyens"}}
   {{/if}}

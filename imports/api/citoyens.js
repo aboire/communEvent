@@ -344,8 +344,10 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
         if(bothUserId === targetId){
           scopeTypeArray.push('private');
         }
+
         query['$or'].push({'author':targetId, targetIsAuthor:{$exists:false},type:'news','scope.type':{$in:scopeTypeArray}});
         query['$or'].push({'target.id':targetId,'scope.type':{$in:scopeTypeArray}});
+        query['$or'].push({'mentions.id':targetId,'scope.type':{$in:scopeTypeArray}});
         if(bothUserId){
           query['$or'].push({'author':bothUserId,'target.id':targetId});
         }
@@ -364,7 +366,7 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
             options['limit'] = limit;
           }
         }
-        query['$or'].push({'author':bothUserId});
+
           let projectsArray,eventsArray,memberOfArray = [];
           //projects
           if(this.links && this.links.projects){
@@ -381,8 +383,10 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
 
           const arrayIds = _.union(projectsArray,eventsArray,memberOfArray);
           arrayIds.push(bothUserId);
+          query['$or'].push({'author': bothUserId});
           query['$or'].push({'target.id': {$in:arrayIds}});
           query['$or'].push({'mentions.id': {$in:arrayIds}});
+          query['$or'].push({'sharedBy': bothUserId});
 
           //follows
           if(this.links && this.links.follows){

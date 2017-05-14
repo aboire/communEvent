@@ -168,6 +168,10 @@ export const SchemasProjectsRest = new SimpleSchema([baseSchema,geoSchema,{
       let bothUserId = (typeof userId !== 'undefined') ? userId : Meteor.userId();
       return (this.links && this.links.contributors && this.links.contributors[bothUserId] && this.links.contributors[bothUserId].toBeValidated) ? false : true;
     },
+    toBeValidated (userId) {
+      let bothUserId = (typeof userId !== 'undefined') ? userId : Meteor.userId();
+      return (this.links && this.links.contributors && this.links.contributors[bothUserId] && this.links.contributors[bothUserId].toBeValidated) ? true : false;
+    },
     listMembersToBeValidated (){
       if(this.links && this.links.contributors){
         const query = queryLinkToBeValidated(this.links.contributors);
