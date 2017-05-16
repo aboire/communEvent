@@ -605,7 +605,7 @@ followEntity (connectId,parentType,childId){
       throw new Meteor.Error("not-authorized");
     }
     if (Citoyens.findOne({_id:new Mongo.ObjectID(this.userId)}).username !== username) {
-      const responsePost = HTTP.call( 'POST', `${Meteor.settings.endpoint}/communecter/person/checkusername`, {
+      const responsePost = HTTP.call( 'POST', `${Meteor.settings.endpoint}/${Meteor.settings.module}/person/checkusername`, {
         params: {username: username}
       });
       console.log(responsePost.data);
@@ -924,7 +924,7 @@ doc.parentId=newsOne.target.id;
 doc.parentType=newsOne.target.type;
 doc.path=newsDoc.path;
 doc.docId=newsDoc._id._str;
-  apiCommunecter.postPixel("document",`delete/dir/communecter/type/${newsOne.target.type}/parentId/${newsOne.target.id}`,doc);
+  apiCommunecter.postPixel("document",`delete/dir/${Meteor.settings.module}/type/${newsOne.target.type}/parentId/${newsOne.target.id}`,doc);
 });
 }
   const retour = apiCommunecter.postPixel("news",`delete/id/${newsId}`,{});
@@ -957,13 +957,14 @@ doc.docId=newsDoc._id._str;
       insertDoc.id = idType;
       insertDoc.type = type;
       insertDoc.folder = `${type}/${idType}/album`;
-      insertDoc.moduleId = "communecter";
+      insertDoc.moduleId = Meteor.settings.module;
       insertDoc.doctype = "image";
       insertDoc.name = retourUpload.name;
       insertDoc.size = retourUpload.size;
       //insertDoc.date = "";
       insertDoc.contentKey = "slider";
       insertDoc.formOrigin = "news";
+      console.log(insertDoc);
       let  doc = apiCommunecter.postPixel("document","save",insertDoc);
       if(doc){
         //{"result":true,"msg":"Document bien enregistr\u00e9","id":{"$id":"58df810add04528643014012"},"name":"moon.png"}
@@ -1152,7 +1153,7 @@ doc.docId=newsDoc._id._str;
       insertDoc.id = idType;
       insertDoc.type = scope;
       insertDoc.folder = `${scope}/${idType}`;
-      insertDoc.moduleId = "communecter";
+      insertDoc.moduleId = Meteor.settings.module;
       insertDoc.author = this.userId;
       insertDoc.doctype = "image";
       insertDoc.name = retourUpload.name;
@@ -1162,9 +1163,9 @@ doc.docId=newsDoc._id._str;
       //console.log(doc);
       if(doc){
         collection.update({_id:new Mongo.ObjectID(idType)},{$set:{
-          'profilImageUrl':`/upload/communecter/${scope}/${idType}/${retourUpload.name}`,
-          'profilThumbImageUrl':`/upload/communecter/${scope}/${idType}/thumb/profil-resized.png?=${new Date}${Math.floor((Math.random() * 100) + 1)}`,
-          'profilMarkerImageUrl':`/upload/communecter/${scope}/${idType}/thumb/profil-marker.png?=${new Date}${Math.floor((Math.random() * 100) + 1)}`
+          'profilImageUrl':`/upload/${Meteor.settings.module}/${scope}/${idType}/${retourUpload.name}`,
+          'profilThumbImageUrl':`/upload/${Meteor.settings.module}/${scope}/${idType}/thumb/profil-resized.png?=${new Date}${Math.floor((Math.random() * 100) + 1)}`,
+          'profilMarkerImageUrl':`/upload/${Meteor.settings.module}/${scope}/${idType}/thumb/profil-marker.png?=${new Date}${Math.floor((Math.random() * 100) + 1)}`
         }});
         return doc.data.id["$id"];
       }else{

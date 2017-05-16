@@ -169,7 +169,7 @@
       {{> imgDoc imageDoc=imageDoc resized="80x80"}}
       {{else}}
       {{#if imageDoc authorNews._id._str}}
-      {{> imgDoc imageDoc=(imageDoc authorNews._id._str) resized="80x80"}}
+      {{> imgDoc imageDoc=(imageDoc authorNews._id._str profil=true) resized="80x80"}}
       {{/if}}
       {{/if}}
       {{/if}}
@@ -230,7 +230,7 @@
       {{> imgDoc imageDoc=imageDoc resized="80x80"}}
       {{else}}
       {{#if imageDoc authorNews._id._str}}
-      {{> imgDoc imageDoc=(imageDoc authorNews._id._str) resized="80x80"}}
+      {{> imgDoc imageDoc=(imageDoc authorNews._id._str profil=true) resized="80x80"}}
       {{/if}}
       {{/if}}
       {{/if}}
@@ -433,7 +433,7 @@
     <div class="item item-image">
       {{#if profilImageUrl}}
       {{#if isAdmin}}
-      <a href="" class="photo-link-scope"><img src="{{urlImageCommunecter}}{{profilImageUrl}}" class="photo-link-scope"></a>
+      <a href="" class="photo-link-scope"><img src="{{urlImageCommunecter}}{{profilImageUrl}}"></a>
       {{else}}
       <img src="{{urlImageCommunecter}}{{profilImageUrl}}">
       {{/if}}
@@ -445,15 +445,46 @@
       {{/if}}
       {{/if}}
 
+
+
+      {{#if equals scopeVar 'citoyens'}}
       {{#transition in="slideInDown" out="slideOutUp"}}
-      {{#if startDate}}
       <p class="right-top animated in">
+        {{#if modified}}<i class="icon ion-android-alarm-clock"></i> {{_ "modified"}} : {{livestamp modified}}<br>{{/if}}
+        {{#if preferences}}
+        {{#if equals preferences.isOpenData 'true'}}
+        <span class="icon fa-stack opendata" style="font-size:14px;width:14px;">
+                <i class="fa fa-database main fa-stack-1x dark"></i>
+                <i class="fa fa-share-alt  mainTop fa-stack-1x light" style="text-shadow: 0px 0px 2px rgb(15,15,15);"></i>
+              </span>  {{name}}
+        {{/if}}
+        {{/if}}
+      </p>
+      {{/transition}}
+      {{else}}
+      {{#transition in="slideInDown" out="slideOutUp"}}
+
+      <p class="right-top animated in">
+        {{#if startDate}}
         {{#if startDate}}<i class="icon ion-android-alarm-clock"></i> {{_ "start"}} : {{livestamp startDate}} <br>{{/if}}
         {{#if endDate}}<i class="icon ion-android-alarm-clock"></i> {{_ "end"}} : {{livestamp endDate}} <br>{{/if}}
         {{#if endDate}}<i class="icon ion-android-time"></i> {{_ "duration"}} : {{diffInText startDate endDate}}<br>{{/if}}
+        {{/if}}
+        {{#if modified}}<i class="icon ion-android-alarm-clock"></i> {{_ "modified"}} : {{livestamp modified}}<br>{{/if}}
+        {{#if preferences}}
+        {{#if equals preferences.isOpenData 'true'}}
+        <span class="icon fa-stack opendata" style="font-size:14px;width:14px;">
+                <i class="icon fa fa-database main fa-stack-1x dark"></i>
+                <i class="icon fa fa-share-alt  mainTop fa-stack-1x light" style="text-shadow: 0px 0px 2px rgb(15,15,15);"></i>
+              </span>  {{name}}
+        {{/if}}
+        {{#if equals preferences.isOpenEdition 'true'}}
+        <i class="icon fa fa-creative-commons dark"></i> {{name}}
+        {{/if}}
+        {{/if}}
       </p>
-      {{/if}}
       {{/transition}}
+      {{/if}}
 
     </div>
 

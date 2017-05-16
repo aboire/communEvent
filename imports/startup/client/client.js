@@ -199,11 +199,24 @@ function(id) {
 );
 
 Template.registerHelper('imageDoc',
-function(id) {
+function(id,profil) {
+  const query = {};
   if(id){
-    return Documents.findOne({	id : id,doctype :'image'},{sort: {"created": -1}});
+    query['id'] = id;
+    if(profil){
+      query['contentKey'] = 'profil';
+    }
+    return Documents.findOne(query,{sort: {"created": -1}});
   }else{
-    return this && this._id && this._id._str && Documents.findOne({	id : this._id._str,doctype :'image'},{sort: {"created": -1}});
+    if(this && this._id && this._id._str){
+      query['id'] = this._id._str;
+      query['doctype'] = 'image';
+      if(profil){
+        query['contentKey'] = 'profil';
+      }
+      return this && this._id && this._id._str && Documents.findOne(query,{sort: {"created": -1}});
+    }
+
   }
 }
 );

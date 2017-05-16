@@ -342,12 +342,15 @@ export const SchemasInviteAttendeesEventRest = new SimpleSchema({
         }
         let scopeTypeArray = ['public','restricted'];
         if(bothUserId === targetId){
-          scopeTypeArray.push('private');
+          //scopeTypeArray.push('private');
+          query['$or'].push({'author':targetId, targetIsAuthor:{$exists:false},type:'news'});
+          query['$or'].push({'target.id':targetId});
+          //query['$or'].push({'mentions.id':targetId,'scope.type':{$in:scopeTypeArray}});
+        }else{
+          query['$or'].push({'author':targetId, targetIsAuthor:{$exists:false},type:'news','scope.type':{$in:scopeTypeArray}});
+          query['$or'].push({'target.id':targetId,'scope.type':{$in:scopeTypeArray}});
+          //query['$or'].push({'mentions.id':targetId,'scope.type':{$in:scopeTypeArray}});
         }
-
-        query['$or'].push({'author':targetId, targetIsAuthor:{$exists:false},type:'news','scope.type':{$in:scopeTypeArray}});
-        query['$or'].push({'target.id':targetId,'scope.type':{$in:scopeTypeArray}});
-        query['$or'].push({'mentions.id':targetId,'scope.type':{$in:scopeTypeArray}});
         if(bothUserId){
           query['$or'].push({'author':bothUserId,'target.id':targetId});
         }

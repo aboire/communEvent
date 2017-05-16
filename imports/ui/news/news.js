@@ -718,7 +718,7 @@ function successCallback (retour){
           let dataURI = data;
           Meteor.call("photoScope",scope,data,str,self._id._str, function (error, result) {
             if (!error) {
-
+              console.log(result);
             }else{
               //console.log('error',error);
             }

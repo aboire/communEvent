@@ -25,6 +25,6 @@
   },
   "homepage": "https://github.com/aboire/communEvent#readme",
   "devDependencies": {
-    "meteor-desktop": "^0.6.1"
+    "meteor-desktop": "^0.7.0"
   }
 }

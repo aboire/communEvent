@@ -313,14 +313,15 @@ export const SchemasOrganizationsRest = new SimpleSchema([baseSchema,geoSchema,{
           options['limit'] = limit;
         }
       }
+
       let scopeTypeArray = ['public','restricted'];
       if (this.isMembers(bothUserId)) {
-        scopeTypeArray.push('private');
-      }
-      query['$or'].push({'target.id':targetId,'scope.type':{$in:scopeTypeArray}});
-      query['$or'].push({'mentions.id':targetId,'scope.type':{$in:scopeTypeArray}});
-      if(bothUserId){
-        //query['$or'].push({'author':bothUserId});
+        //scopeTypeArray.push('private');
+        query['$or'].push({'target.id':targetId,'scope.type':{$in:scopeTypeArray}});
+        query['$or'].push({'mentions.id':targetId});
+      }else{
+        query['$or'].push({'target.id':targetId, $or: [{'scope.type':{$in:scopeTypeArray}},{'author':bothUserId}]});
+        query['$or'].push({'mentions.id':targetId,'scope.type':{$in:scopeTypeArray}});
       }
       return News.find(query,options);
     },
