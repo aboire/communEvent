@@ -120,7 +120,31 @@ export const SchemasNewsRest =   new SimpleSchema({
   "media.content.url" : {
     type: String,
     optional: true
-  }
+  },
+  "mentions" : {
+    type: [Object],
+    optional: true
+  },
+  "mentions.$.id" : {
+    type: String,
+    optional: true
+  },
+  "mentions.$.name" : {
+    type: String,
+    optional: true
+  },
+  "mentions.$.avatar" : {
+    type: String,
+    optional: true
+  },
+  "mentions.$.type" : {
+    type: String,
+    optional: true
+  },
+  "mentions.$.value" : {
+    type: String,
+    optional: true
+  },
 });
 
   export const SchemasNewsRestBase = {};
@@ -199,7 +223,7 @@ export const SchemasNewsRest =   new SimpleSchema({
     import { Projects } from './projects.js';
     import { Events } from './events.js';
     import { Comments } from './comments.js';
-
+    import { Router } from 'meteor/iron:router';
     import { nameToCollection } from './helpers.js';
 
     if(Meteor.isClient){
@@ -262,6 +286,17 @@ export const SchemasNewsRest =   new SimpleSchema({
       },
       isAuthor () {
         return this.author === Meteor.userId();
+      },
+      textMentions () {
+        if(this.text){
+          let text = this.text;
+        if(this.mentions){
+        _.each(this.mentions, (array,key) => {
+          text = text.replace(new RegExp(`@${array.value}`, 'g'), `<a href="${Router.path('detailList', {scope:array.type,_id:array.id})}" class="positive">@${array.value}</a>`);
+        }, text);
+        }
+        return text;
+      }
       },
       listComments () {
         console.log('listComments');

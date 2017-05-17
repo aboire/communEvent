@@ -3,6 +3,7 @@ import { Template } from 'meteor/templating';
 import { Session } from 'meteor/session';
 import { Router } from 'meteor/iron:router';
 import { $ } from 'meteor/jquery';
+import { HTTP } from 'meteor/http';
 import { Counts } from 'meteor/tmeasday:publish-counts';
 //import { MeteoricCamera } from 'meteor/meteoric:camera';
 import { MeteorCameraUI } from 'meteor/aboire:camera-ui';
@@ -750,8 +751,89 @@ function successCallback (retour){
 
     Template.newsAdd.onRendered(function () {
         const self = this;
-      pageSession.set( 'error', false );
+        pageSession.set( 'error', false );
+        pageSession.set( 'queryMention', false );
+        pageSession.set( 'queryTag', false );
+        pageSession.set( 'mentions', false );
+        pageSession.set( 'tags', false );
+        self.$('textarea').atwho({
+          at: "@",
+          limit: 10,
+          delay: 600,
+          displayTimeout: 300,
+          startWithSpace: false,
+          displayTpl: function(item) {
+            return `<li><img src='${item.avatar}' height='20' width='20'/> ${item.name} ${item.id} </li>`;
+          },
+          searchKey: "name"
+        }).atwho({
+          at: "#"
+        }).on("matched.atwho", function(event, flag, query) {
+            console.log(event, "matched " + flag + " and the result is " + query);
+            if(flag === '@' && query){
+            console.log(pageSession.get('queryMention'));
+            if(pageSession.get( 'queryMention') !== query){
+              pageSession.set( 'queryMention', query);
+              Meteor.call('searchMemberautocomplete',query, function(error,result) {
+              if (!error) {
+                const citoyensArray = _.map(result.citoyens, (array,key) => {
+                  return {id:key,name:array.name,type:'citoyens',avatar:`${Meteor.settings.public.urlimage}${array.profilThumbImageUrl}`};
+                });
+                const organizationsArray = _.map(result.organizations, (array,key) => {
+                  return {id:key,name:array.name,type:'organizations',avatar:`${Meteor.settings.public.urlimage}${array.profilThumbImageUrl}`};
+                });
+                const arrayUnions = _.union(citoyensArray,organizationsArray)
+                console.log(citoyensArray);
+                self.$('textarea').atwho('load', '@', arrayUnions).atwho('run');
+              }
+            });
+            }
+          } else if(flag === '#' && query){
+          console.log(pageSession.get('queryTag'));
+          if(pageSession.get( 'queryTag') !== query){
+            pageSession.set( 'queryTag', query);
+            Meteor.call('searchTagautocomplete',query, function(error,result) {
+            if (!error) {
+              console.log(result);
+              self.$('textarea').atwho('load', '#', result).atwho('run');
+            }
+          });
+          }
+        }
+          }).on("inserted.atwho", function(event, $li, browser) {
+              console.log(JSON.stringify($li.data('item-data')));
+
+              if($li.data('item-data')['atwho-at'] == '@'){
+              const mentions = {};
+              //const arrayMentions = [];
+              mentions['name'] = $li.data('item-data').name;
+              mentions['id'] = $li.data('item-data').id;
+              mentions['type'] = $li.data('item-data').type;
+              mentions['avatar'] = $li.data('item-data').avatar;
+              mentions['value'] = $li.data('item-data').name;
+              if(pageSession.get('mentions')){
+                let arrayMentions = pageSession.get('mentions');
+                arrayMentions.push(mentions);
+                pageSession.set( 'mentions', arrayMentions);
+              }else{
+                pageSession.set( 'mentions', [mentions] );
+              }
+            }else if($li.data('item-data')['atwho-at'] == '#'){
+              const tag = $li.data('item-data').name;
+              if(pageSession.get('tags')){
+                let arrayTags = pageSession.get('tags');
+                arrayTags.push(tag);
+                pageSession.set( 'tags', arrayTags);
+              }else{
+                pageSession.set( 'tags', [tag] );
+              }
+            }
+            });
     });
+
+Template.newsAdd.onDestroyed(function () {
+this.$('textarea').atwho('destroy');
+});
 
     Template.newsAdd.helpers({
       scope () {
@@ -792,12 +874,111 @@ function successCallback (retour){
     });
 
     Template.newsEdit.onRendered(function () {
+      const self = this;
       pageSession.set( 'error', false );
+      pageSession.set( 'queryMention', false );
+      pageSession.set( 'queryTag', false );
+      pageSession.set( 'mentions', false );
+      pageSession.set( 'tags', false );
+    });
+
+    Template.newsFields.onRendered(function () {
+      const self = this;
+      self.$('textarea').atwho({
+        at: "@",
+        limit: 10,
+        delay: 600,
+        displayTimeout: 300,
+        startWithSpace: false,
+        displayTpl: function(item) {
+          return `<li><img src='${item.avatar}' height='20' width='20'/> ${item.name} ${item.id} </li>`;
+        },
+        searchKey: "name"
+      }).atwho({
+        at: "#"
+      }).on("matched.atwho", function(event, flag, query) {
+          console.log(event, "matched " + flag + " and the result is " + query);
+          if(flag === '@' && query){
+          console.log(pageSession.get('queryMention'));
+          if(pageSession.get( 'queryMention') !== query){
+            pageSession.set( 'queryMention', query);
+            Meteor.call('searchMemberautocomplete',query, function(error,result) {
+            if (!error) {
+              const citoyensArray = _.map(result.citoyens, (array,key) => {
+                return {id:key,name:array.name,type:'citoyens',avatar:`${Meteor.settings.public.urlimage}${array.profilThumbImageUrl}`};
+              });
+              const organizationsArray = _.map(result.organizations, (array,key) => {
+                return {id:key,name:array.name,type:'organizations',avatar:`${Meteor.settings.public.urlimage}${array.profilThumbImageUrl}`};
+              });
+              const arrayUnions = _.union(citoyensArray,organizationsArray)
+              console.log(citoyensArray);
+              self.$('textarea').atwho('load', '@', arrayUnions).atwho('run');
+            }
+          });
+          }
+        } else if(flag === '#' && query){
+        console.log(pageSession.get('queryTag'));
+        if(pageSession.get( 'queryTag') !== query){
+          pageSession.set( 'queryTag', query);
+          Meteor.call('searchTagautocomplete',query, function(error,result) {
+          if (!error) {
+            console.log(result);
+            self.$('textarea').atwho('load', '#', result).atwho('run');
+          }
+        });
+        }
+      }
+        }).on("inserted.atwho", function(event, $li, browser) {
+            console.log(JSON.stringify($li.data('item-data')));
+
+            if($li.data('item-data')['atwho-at'] == '@'){
+            const mentions = {};
+            //const arrayMentions = [];
+            mentions['name'] = $li.data('item-data').name;
+            mentions['id'] = $li.data('item-data').id;
+            mentions['type'] = $li.data('item-data').type;
+            mentions['avatar'] = $li.data('item-data').avatar;
+            mentions['value'] = $li.data('item-data').name;
+            if(pageSession.get('mentions')){
+              let arrayMentions = pageSession.get('mentions');
+              arrayMentions.push(mentions);
+              pageSession.set( 'mentions', arrayMentions);
+            }else{
+              pageSession.set( 'mentions', [mentions] );
+            }
+          }else if($li.data('item-data')['atwho-at'] == '#'){
+            const tag = $li.data('item-data').name;
+            if(pageSession.get('tags')){
+              let arrayTags = pageSession.get('tags');
+              arrayTags.push(tag);
+              pageSession.set( 'tags', arrayTags);
+            }else{
+              pageSession.set( 'tags', [tag] );
+            }
+          }
+          });
+    });
+
+    Template.newsFields.onDestroyed(function () {
+    this.$('textarea').atwho('destroy');
     });
 
     Template.newsEdit.helpers({
       new () {
-        return News.findOne({_id:new Mongo.ObjectID(Router.current().params.newsId)});
+        let news = News.findOne({_id:new Mongo.ObjectID(Router.current().params.newsId)});
+        let newEdit = {};
+        newEdit._id = news._id._str;
+        if(news && news.mentions){
+          pageSession.set( 'mentions', news.mentions);
+        }
+        if(news && news.tags){
+          pageSession.set( 'tags', news.tags);
+        }
+        newEdit.text = news.text;
+        return newEdit;
+      },
+      blockSchema() {
+        return Router.current().params.scope && SchemasNewsRestBase[Router.current().params.scope];
       },
       error () {
         return pageSession.get( 'error' );
@@ -883,6 +1064,45 @@ function successCallback (retour){
           let scopeId = Session.get('scopeId');
           doc.parentType = scope;
           doc.parentId = scopeId;
+          //comparer dans le text si @name present dans le array
+
+          if(pageSession.get('mentions')){
+            const arrayMentions = _.reject(pageSession.get('mentions'), (array) => {
+              return doc.text.match(`@${array.value}`) === null;
+            }, doc.text);
+            console.log(arrayMentions);
+            doc.mentions = arrayMentions;
+          }else{
+            //si on update est ce que la mention reste
+
+          }
+          const regex = /(?:^|\s)(?:#)([a-zA-Z\d]+)/gm;
+          const matches = [];
+          let match;
+          while ((match = regex.exec(doc.text))) {
+            matches.push(match[1]);
+          }
+          console.log(matches);
+          if(pageSession.get('tags')){
+            const arrayTags = _.reject(pageSession.get('tags'), (value) => {
+              return doc.text.match(`#${value}`) === null;
+            }, doc.text);
+            console.log(arrayTags);
+            if(doc.tags){
+              doc.tags = _.uniq(_.union(doc.tags,arrayTags,matches));
+            }else{
+              doc.tags = _.uniq(_.union(arrayTags,matches));
+            }
+          }else{
+            //si on update est ce que la mention reste
+            if(matches.length > 0){
+            if(doc.tags){
+              doc.tags = _.uniq(_.union(doc.tags,matches));
+            }else{
+              doc.tags = _.uniq(matches);
+            }
+          }
+          }
           return doc;
         },
         "method-update" : function(modifier, documentId) {
@@ -890,6 +1110,44 @@ function successCallback (retour){
           let scopeId = Session.get('scopeId');
           modifier["$set"].parentType = scope;
           modifier["$set"].parentId = scopeId;
+          if(pageSession.get('mentions')){
+            const arrayMentions = _.reject(pageSession.get('mentions'), (array) => {
+              return modifier["$set"].text.match(`@${array.value}`) === null;
+            }, modifier["$set"].text);
+            console.log(arrayMentions);
+            modifier["$set"].mentions = arrayMentions;
+          }else{
+            //si on update est ce que la mention reste
+
+          }
+
+          const regex = /(?:^|\s)(?:#)([a-zA-Z\d]+)/gm;
+          const matches = [];
+          let match;
+          while ((match = regex.exec(modifier["$set"].text))) {
+            matches.push(match[1]);
+          }
+          console.log(matches);
+          if(pageSession.get('tags')){
+            const arrayTags = _.reject(pageSession.get('tags'), (value) => {
+              return modifier["$set"].text.match(`#${value}`) === null;
+            }, modifier["$set"].text);
+            console.log(arrayTags);
+            if(modifier["$set"].tags){
+              modifier["$set"].tags = _.uniq(_.union(modifier["$set"].tags,arrayTags,matches));
+            }else{
+              modifier["$set"].tags = _.uniq(_.union(arrayTags,matches));
+            }
+          }else{
+            //si on update est ce que la mention reste
+            if(matches.length > 0){
+            if(doc.modifier["$set"]){
+              doc.modifier["$set"] = _.uniq(_.union(doc.modifier["$set"],matches));
+            }else{
+              doc.modifier["$set"] = _.uniq(matches);
+            }
+          }
+          }
           return modifier;
         }
       },
@@ -959,16 +1217,4 @@ function successCallback (retour){
           }
         }
       }
-    });
-
-    Template.newsFields.onRendered(function() {
-
-      $('textarea').atwho({
-  at: "@",
-  data: ["one", "two", "three"],
-}).atwho({
-  at: ":",
-  data: ["+1", "-1", "smile"]
-});
-
     });

@@ -13,6 +13,7 @@ import { Citoyens,BlockCitoyensRest,SchemasCitoyensRest,SchemasFollowRest,Schema
 import { News,SchemasNewsRest,SchemasNewsRestBase } from '../news.js';
 import { Documents } from '../documents.js';
 import { Cities } from '../cities.js';
+import { Lists } from '../lists.js';
 import { Events,SchemasEventsRest,BlockEventsRest } from '../events.js';
 import { Organizations,SchemasOrganizationsRest,BlockOrganizationsRest } from '../organizations.js';
 import { Projects,SchemasProjectsRest,BlockProjectsRest } from '../projects.js';
@@ -614,6 +615,34 @@ followEntity (connectId,parentType,childId){
       return true
     }
   },
+  searchTagautocomplete (query, options){
+    check(query, String);
+    if (!query) return [];
+
+    options = options || {};
+
+    // guard against client-side DOS: hard limit to 50
+    if (options.limit) {
+      options.limit = Math.min(50, Math.abs(options.limit));
+    } else {
+      options.limit = 50;
+    }
+
+    // TODO fix regexp to support multiple tokens
+    var regex = new RegExp("^" + query);
+    //List.find({$or : [{name: {$regex:  regex, $options: "i"}},{'postalCodes.postalCode': {$regex:  regex}}]}, options).fetch();
+    return Lists.findOne({name:'tags'}).list;
+  },
+  searchMemberautocomplete (search){
+    check(search, String);
+    if (!this.userId) {
+      throw new Meteor.Error("not-authorized");
+    }
+    const query = {search: search};
+    var retour = apiCommunecter.postPixelMethod("search","searchmemberautocomplete",query);
+    console.log(retour);
+    return retour.data;
+  },
   searchGlobalautocomplete (search){
     check(search, Object);
     if (!this.userId) {
@@ -831,6 +860,7 @@ updateCitoyen (modifier,documentId){
   return retour;
 },
   insertNew (doc){
+    console.log(JSON.stringify(doc));
       check(doc.parentType, Match.Where(function(name) {
         return _.contains(['events', 'projects','organizations','citoyens'], name);
       }));
@@ -882,6 +912,25 @@ updateCitoyen (modifier,documentId){
     return retour;
   },
   updateNew (modifier,documentId){
+    check(modifier["$set"].parentType, Match.Where(function(name) {
+      return _.contains(['events', 'projects','organizations','citoyens'], name);
+    }));
+    //check(modifier["$set"], SchemasNewsRest);
+
+    if (!this.userId) {
+      throw new Meteor.Error("not-authorized");
+    }
+    if (!News.findOne({_id:new Mongo.ObjectID(documentId)}).isAuthor()) {
+      throw new Meteor.Error("not-authorized");
+    }
+
+    const doc = modifier["$set"];
+    doc.id = documentId;
+    console.log(doc);
+    var retour = apiCommunecter.postPixel("news","save",doc);
+    return retour;
+  },
+  updateNewOld (modifier,documentId){
     check(modifier["$set"], SchemasNewsRest);
 
     if (!this.userId) {

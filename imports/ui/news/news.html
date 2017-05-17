@@ -298,7 +298,6 @@
     {{#autoForm id="addNew" schema=blockSchema type="method" meteormethod="insertNew" template="ionic" class="padding"}}
     {{> afQuickField name='text' type="textarea" label-type='placeholder' rows=8 class="atwho-inputor"}}
     {{> afQuickField name='scope'}}
-    {{> afQuickField name='tags'}}
     {{#if equals scope.scopeVar 'organizations'}}
     {{#if scope.isAdmin}}
     {{> afQuickField type="select-radio" defaultValue="false" name='targetIsAuthor'}}
@@ -350,7 +349,7 @@
         {{_ error}}
       </div>
     {{/if}}
-    {{#autoForm id="editNew" schema=SchemasNewsRest type="method-update" meteormethod="updateNew" doc=new template="ionic" class="padding form-rb-plain"}}
+    {{#autoForm id="editNew" schema=blockSchema type="method-update" meteormethod="updateNew" doc=new template="ionic" class="padding form-rb-plain"}}
     {{> newsFields}}
     <div class="item">
       <div class="button-bar">
